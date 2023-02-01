@@ -1,0 +1,256 @@
+ID,Type,Name,Sale price,Regular price,Categories,Images,Parent,i,weight
+55,variable,Varagu,,,Millets,http://otpindia.in/wp-content/uploads/2022/09/Kodo.jpg,,weight,"1000gm,500gm"
+56,variation,Varagu,106,132,,,55,weight,1000gm
+57,variation,Varagu,53,66,,,55,weight,500gm
+58,variable,Thinai,,,Millets,http://otpindia.in/wp-content/uploads/2022/09/Foxtail-Millet-Thinnai1.jpg,,weight,"1000gm,500gm"
+59,variation,Thinai,82,103,,,58,weight,1000gm
+60,variation,Thinai,41,51,,,58,weight,500gm
+61,variable,Saamai,,,Millets,http://otpindia.in/wp-content/uploads/2022/09/Samai.jpg,,weight,"1000gm,500gm"
+62,variation,Saamai,124,155,,,61,weight,1000gm
+63,variation,Saamai,62,78,,,61,weight,500gm
+64,variable,Kuthirai Vaali (Brown Top),,,Millets,http://otpindia.in/wp-content/uploads/2022/10/kuthval.jpg,,weight,"1000gm,500gm"
+65,variation,Kuthirai Vaali (Brown Top),132,165,,,64,weight,1000gm
+66,variation,Kuthirai Vaali (Brown Top),66,83,,,64,weight,500gm
+67,variable,Kambu,,,Millets,http://otpindia.in/wp-content/uploads/2022/09/kambu.png,,weight,"1000gm,500gm"
+68,variation,Kambu,50,63,,,67,weight,1000gm
+69,variation,Kambu,25,31,,,67,weight,500gm
+70,variable,Nattu Kambu,,,Millets,http://otpindia.in/wp-content/uploads/2022/09/kambu.png,,weight,"1000gm,500gm"
+71,variation,Nattu Kambu,87,109,,,70,weight,1000gm
+72,variation,Nattu Kambu,44,55,,,70,weight,500gm
+73,variable,Cholam,,,Millets,http://otpindia.in/wp-content/uploads/2022/09/corn.jpg,,weight,"1000gm,500gm"
+74,variation,Cholam,60,74,,,73,weight,1000gm
+75,variation,Cholam,30,38,,,73,weight,500gm
+76,variable,Red Cholam,,,Millets,http://otpindia.in/wp-content/uploads/2022/10/red-cho.jpeg,,weight,"1000gm,500gm"
+77,variation,Red Cholam,79,99,,,76,weight,1000gm
+78,variation,Red Cholam,40,50,,,76,weight,500gm
+79,variable,Sweet Cholam Rice,,,Millets,http://otpindia.in/wp-content/uploads/2022/10/sweet-corn.jpg,,weight,"1000gm,500gm"
+80,variation,Sweet Cholam Rice,198,248,,,79,weight,1000gm
+81,variation,Sweet Cholam Rice,99,124,,,79,weight,500gm
+82,variable,Makka Cholam,,,Millets,http://otpindia.in/wp-content/uploads/2022/10/makka-cho.jpg,,weight,"1000gm,500gm"
+83,variation,Makka Cholam,46,58,,,82,weight,1000gm
+84,variation,Makka Cholam,24,30,,,82,weight,500gm
+85,variable,Pani Varagu,,,Millets,http://otpindia.in/wp-content/uploads/2022/10/pani.jpg,,weight,"1000gm,500gm"
+86,variation,Pani Varagu,93,116,,,85,weight,1000gm
+87,variation,Pani Varagu,46,58,,,85,weight,500gm
+88,variable,Kezhvaragu,,,Millets,http://otpindia.in/wp-content/uploads/2022/09/kambu-1.png,,weight,"1000gm,500gm"
+89,variation,Kezhvaragu,46,58,,,88,weight,1000gm
+90,variation,Kezhvaragu,24,30,,,88,weight,500gm
+91,variable,Kollu,,,Millets,http://otpindia.in/wp-content/uploads/2022/10/Kollu.jpg,,weight,"1000gm,500gm"
+92,variation,Kollu,99,124,,,91,weight,1000gm
+93,variation,Kollu,50,63,,,91,weight,500gm
+94,variable,Black Kollu,,,Millets,http://otpindia.in/wp-content/uploads/2022/10/black-kollu.jpg,,weight,"1000gm,500gm"
+95,variation,Black Kollu,106,132,,,94,weight,1000gm
+96,variation,Black Kollu,53,66,,,94,weight,500gm
+97,variable,Red Rice,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/rr.jpg,,weight,"1000gm,500gm"
+98,variation,Red Rice,73, 	91 ,,,97,weight,1000gm
+99,variation,Red Rice,36, 	45 ,,,97,weight,500gm
+100,variable,Kai Kuthal Rice,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/kkr.jpg,,weight,"1000gm,500gm"
+101,variation,Kai Kuthal Rice,73, 	91 ,,,100,weight,1000gm
+102,variation,Kai Kuthal Rice,37, 	46 ,,,100,weight,500gm
+103,variable,Thooya malli Rice,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/tmr.jpg,,weight,"1000gm,500gm"
+104,variation,Thooya malli Rice,85, 	106 ,,,103,weight,1000gm
+105,variation,Thooya malli Rice,42, 	53 ,,,103,weight,500gm
+106,variable,Mysore Malli Rice,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/mmr.png,,weight,"1000gm,500gm"
+107,variation,Mysore Malli Rice,87, 	109 ,,,106,weight,1000gm
+108,variation,Mysore Malli Rice,44, 	55 ,,,106,weight,500gm
+109,variable,Garudan Samba,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/gsr.jpg,,weight,"1000gm,500gm"
+110,variation,Garudan Samba,87, 	109 ,,,109,weight,1000gm
+111,variation,Garudan Samba,44, 	55 ,,,109,weight,500gm
+112,variable,Jeeraga Samba Rice,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/Seeraga-Samba.jpg,,weight,"1000gm,500gm"
+113,variation,Jeeraga Samba Rice,119, 	149 ,,,112,weight,1000gm
+114,variation,Jeeraga Samba Rice,60, 	74 ,,,112,weight,500gm
+115,variable,Kichadi Samba,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/organic-kichili-samba.jpg,,weight,"1000gm,500gm"
+116,variation,Kichadi Samba,73, 	91 ,,,115,weight,1000gm
+117,variation,Kichadi Samba,37, 	46 ,,,115,weight,500gm
+118,variable,Aathur Kichali Samba,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/organic-kichili-samba.jpg,,weight,"1000gm,500gm"
+119,variation,Aathur Kichali Samba,86, 	107 ,,,118,weight,1000gm
+120,variation,Aathur Kichali Samba,50, 	63 ,,,118,weight,500gm
+121,variable,Pulungal Jeeraga Samba,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/seeraga-samba-p.jpg,,weight,"1000gm,500gm"
+122,variation,Pulungal Jeeraga Samba,126, 	157 ,,,121,weight,1000gm
+123,variation,Pulungal Jeeraga Samba,64, 	79 ,,,121,weight,500gm
+124,variable,Organic Idly Rice,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/organic-idli-rice.jpg,,weight,"1000gm,500gm"
+125,variation,Organic Idly Rice,66, 	83 ,,,124,weight,1000gm
+126,variation,Organic Idly Rice,33, 	41 ,,,124,weight,500gm
+127,variable,Mappillai Samba,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/msr.png,,weight,"1000gm,500gm"
+128,variation,Mappillai Samba,87, 	109 ,,,127,weight,1000gm
+129,variation,Mappillai Samba,44, 	55 ,,,127,weight,500gm
+130,variable,Neelam Samba,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/nsr.jpg,,weight,"1000gm,500gm"
+131,variation,Neelam Samba,99, 	124 ,,,130,weight,1000gm
+132,variation,Neelam Samba,50, 	63 ,,,130,weight,500gm
+133,variable,Kothamalli Samba,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/kms.jpg,,weight,"1000gm,500gm"
+134,variation,Kothamalli Samba,126, 	157 ,,,133,weight,1000gm
+135,variation,Kothamalli Samba,64, 	79 ,,,133,weight,500gm
+136,variable,Milagu Samba,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/milagu-samba.jpg,,weight,"1000gm,500gm"
+137,variation,Milagu Samba,132, 	165 ,,,136,weight,1000gm
+138,variation,Milagu Samba,66, 	83 ,,,136,weight,500gm
+139,variable,Surakkuruvai,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/Surakkuruvai.jpg,,weight,"1000gm,500gm"
+140,variation,Surakkuruvai,106,132,,,139,weight,1000gm
+141,variation,Surakkuruvai,53,66,,,139,weight,500gm
+142,variable,Pa.Iluppai Poo Samba,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/Illupai_Poo_Samba_Rice.jpg,,weight,"1000gm,500gm"
+143,variation,Pa.Iluppai Poo Samba,185,232,,,142,weight,1000gm
+144,variation,Pa.Iluppai Poo Samba,93,116,,,142,weight,500gm
+145,variable,Pu.Iluppai Poo samba,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/Illupai_Poo_Samba_Rice.jpg,,weight,"1000gm,500gm"
+146,variation,Pu.Iluppai Poo samba,119,149,,,145,weight,1000gm
+147,variation,Pu.Iluppai Poo samba,60,74,,,145,weight,500gm
+148,variable,Karuppu Kavuni,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/09/kk.jpg,,weight,"1000gm,500gm"
+149,variation,Karuppu Kavuni,172,215,,,148,weight,1000gm
+150,variation,Karuppu Kavuni,86,107,,,148,weight,500gm
+151,variable,Thanga Samba,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/tsr.jpg,,weight,"1000gm,500gm"
+152,variation,Thanga Samba,99,124,,,151,weight,1000gm
+153,variation,Thanga Samba,50,63,,,151,weight,500gm
+154,variable,Sigappu Kavuni,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/sivappukavuni.png,,weight,"1000gm,500gm"
+155,variation,Sigappu Kavuni,73,91,,,154,weight,1000gm
+156,variation,Sigappu Kavuni,37,46,,,154,weight,500gm
+157,variable,Moongil Rice,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/bambo_rice.png,,weight,"1000gm,500gm"
+158,variation,Moongil Rice,569,711,,,157,weight,1000gm
+159,variation,Moongil Rice,284,356,,,157,weight,500gm
+160,variable,Kattu Yanam,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/09/kaattuyaanam_rice.png,,weight,"1000gm,500gm"
+161,variation,Kattu Yanam,95,119,,,160,weight,1000gm
+162,variation,Kattu Yanam,48,60,,,160,weight,500gm
+163,variable,Karunguruvai,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/kgr.jpg,,weight,"1000gm,500gm"
+164,variation,Karunguruvai,95,119,,,163,weight,1000gm
+165,variation,Karunguruvai,48,60,,,163,weight,500gm
+166,variable,KalaNamak Rice,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/Kalanamak.jpg,,weight,"1000gm,500gm"
+167,variation,KalaNamak Rice,106,132,,,166,weight,1000gm
+168,variation,KalaNamak Rice,53,66,,,166,weight,500gm
+169,variable,Kudavazhai,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/kudavaazhai.png,,weight,"1000gm,500gm"
+170,variation,Kudavazhai,95,119,,,169,weight,1000gm
+171,variation,Kudavazhai,48,60,,,169,weight,500gm
+172,variable,Kullangaar,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/09/kulakkar-rice.jpg,,weight,"1000gm,500gm"
+173,variation,Kullangaar,95,119,,,172,weight,1000gm
+174,variation,Kullangaar,48,60,,,172,weight,500gm
+175,variable,Kuzhiparichan,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/Kuzhiadichan.png,,weight,"1000gm,500gm"
+176,variation,Kuzhiparichan,95,119,,,175,weight,1000gm
+177,variation,Kuzhiparichan,48,60,,,175,weight,500gm
+178,variable,Mattai Rice,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/matta-rice.jpg,,weight,"1000gm,500gm"
+179,variation,Mattai Rice,69,86,,,178,weight,1000gm
+180,variation,Mattai Rice,34,43,,,178,weight,500gm
+181,variable,Madu Muzhungi Rice,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/madu-mulingi.jpg,,weight,"1000gm,500gm"
+182,variation,Madu Muzhungi Rice,159,198,,,181,weight,1000gm
+183,variation,Madu Muzhungi Rice,79,99,,,181,weight,500gm
+184,variable,Organic Ponni,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/09/organic-rice.jpg,,weight,"1000gm,500gm"
+185,variation,Organic Ponni,85,106,,,184,weight,1000gm
+186,variation,Organic Ponni,42,53,,,184,weight,500gm
+187,variable,Poongaar,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/09/Poongar_.jpg,,weight,"1000gm,500gm"
+188,variation,Poongaar,95,119,,,187,weight,1000gm
+189,variation,Poongaar,48,60,,,187,weight,500gm
+190,variable,Vaalan Samba,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/valan-samba.jpg,,weight,"1000gm,500gm"
+191,variation,Vaalan Samba,119,149,,,190,weight,1000gm
+192,variation,Vaalan Samba,60,74,,,190,weight,500gm
+193,variable,Pisini Rice,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/pisini.jpg,,weight,"1000gm,500gm"
+194,variation,Pisini Rice,119,149,,,193,weight,1000gm
+195,variation,Pisini Rice,60,74,,,193,weight,500gm
+196,variable,Kallurundai Samba,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/kallundai.png,,weight,"1000gm,500gm"
+197,variation,Kallurundai Samba,106,132,,,196,weight,1000gm
+198,variation,Kallurundai Samba,53,66,,,196,weight,500gm
+199,variable,Karuthagar,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/Karuthakar.jpeg,,weight,"1000gm,500gm"
+200,variation,Karuthagar,99,124,,,199,weight,1000gm
+201,variation,Karuthagar,50,63,,,199,weight,500gm
+202,variable,Arubathamkuruvai,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/aekuruvai.png,,weight,"1000gm,500gm"
+203,variation,Arubathamkuruvai,99,124,,,202,weight,1000gm
+204,variation,Arubathamkuruvai,50,63,,,202,weight,500gm
+205,variable,Pu.Varagu,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/varagu.png,,weight,"1000gm,500gm"
+206,variation,Pu.Varagu,126,157,,,205,weight,1000gm
+207,variation,Pu.Varagu,64,79,,,205,weight,500gm
+208,variable,Pu.Saamai,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/samai-rice.jpg,,weight,"1000gm,500gm"
+209,variation,Pu.Saamai,146,182,,,208,weight,1000gm
+210,variation,Pu.Saamai,73,91,,,208,weight,500gm
+211,variable,Kuthirai Vaali ,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/Kuthiraivali-Rice.png,,weight,"1000gm,500gm"
+212,variation,Kuthirai Vaali ,152,190,,,211,weight,1000gm
+213,variation,Kuthirai Vaali ,77,96,,,211,weight,500gm
+214,variable,Kodhumai,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/Samba-Gothumai.jpeg,,weight,"1000gm,500gm"
+215,variation,Kodhumai,53,66,,,214,weight,1000gm
+216,variation,Kodhumai,26,33,,,214,weight,500gm
+217,variable,Samba Kodhumai,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/Samba-Gothumai.jpeg,,weight,"1000gm,500gm"
+218,variation,Samba Kodhumai,99,124,,,217,weight,1000gm
+219,variation,Samba Kodhumai,50,63,,,217,weight,500gm
+220,variable,Varagu Aval,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/Kodo-flakes.jpg,,weight,"1000gm,500gm"
+221,variation,Varagu Aval,146,182,,,220,weight,1000gm
+222,variation,Varagu Aval,73,91,,,220,weight,500gm
+310,variable,Raagi Aval,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/ragi-aval.png,,weight,"1000gm,500gm"
+311,variation,Raagi Aval,126,157,,,310,weight,1000gm
+312,variation,Raagi Aval,64,79,,,310,weight,500gm
+313,variable,Saamai Aval,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/samai-rice-flakes.jpg,,weight,"1000gm,500gm"
+314,variation,Saamai Aval,192,240,,,313,weight,1000gm
+315,variation,Saamai Aval,103,129,,,313,weight,500gm
+316,variable,Kuthirai Vaali Aval,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/kva.jpg,,weight,"1000gm,500gm"
+317,variation,Kuthirai Vaali Aval,198,248,,,316,weight,1000gm
+318,variation,Kuthirai Vaali Aval,99,124,,,316,weight,500gm
+319,variable,Kambu Aval,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/kvaval.jpg,,weight,"1000gm,500gm"
+320,variation,Kambu Aval,126,157,,,319,weight,1000gm
+321,variation,Kambu Aval,64,79,,,319,weight,500gm
+322,variable,Kodhumai Aval,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/kodumai-aval.jpg,,weight,"1000gm,500gm"
+323,variation,Kodhumai Aval,126,157,,,322,weight,1000gm
+324,variation,Kodhumai Aval,64,79,,,322,weight,500gm
+325,variable,Karuppukavuni Aval,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/kkaval.png,,weight,"1000gm,500gm"
+326,variation,Karuppukavuni Aval,225,281,,,325,weight,1000gm
+327,variation,Karuppukavuni Aval,112,141,,,325,weight,500gm
+328,variable,Cholam Aval,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/sho-aval.png,,weight,"1000gm,500gm"
+329,variation,Cholam Aval,126,157,,,328,weight,1000gm
+330,variation,Cholam Aval,64,79,,,328,weight,500gm
+331,variable,Arisi Aval,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/White-Poha-2.jpg,,weight,"1000gm,500gm"
+332,variation,Arisi Aval,79,99,,,331,weight,1000gm
+333,variation,Arisi Aval,40,50,,,331,weight,500gm
+247,variable,Sigappu Arisi Aval,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/Red-Rice-Aval-Thin.jpg,,weight,"1000gm,500gm"
+248,variation,Sigappu Arisi Aval,79,99,,,247,weight,1000gm
+249,variation,Sigappu Arisi Aval,40,50,,,247,weight,500gm
+250,variable,Mappillai Samba Aval,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/map-aval.jpg,,weight,"1000gm,500gm"
+251,variation,Mappillai Samba Aval,93,116,,,250,weight,1000gm
+252,variation,Mappillai Samba Aval,46,58,,,250,weight,500gm
+253,variable,Aali Vidhai (Flax Seed),,,Dried Fruits-Nuts & Seeds,http://otpindia.in/wp-content/uploads/2022/10/Flax-seeds.jpg,,weight,"1000gm,500gm"
+254,variation,Aali Vidhai (Flax Seed),198,248,,,253,weight,1000gm
+255,variation,Aali Vidhai (Flax Seed),99,124,,,253,weight,500gm
+256,variable,Milagu (Pepper),,,Masalas & Spices,http://otpindia.in/wp-content/uploads/2022/10/milagu.png,,weight,"1000gm,500gm,250gm,100gm"
+257,variation,Milagu (Pepper),794,992,,,256,weight,1000gm
+258,variation,Milagu (Pepper),397,496,,,256,weight,500gm
+259,variation,Milagu (Pepper),198,248,,,256,weight,250gm
+260,variation,Milagu (Pepper),79,99,,,256,weight,100gm
+261,variable,Pachai Verkadalai,,,Dried Fruits-Nuts & Seeds,http://otpindia.in/wp-content/uploads/2022/10/verkallai.jpg,,weight,"1000gm,500gm"
+262,variation,Pachai Verkadalai,179,223,,,261,weight,1000gm
+263,variation,Pachai Verkadalai,90,112,,,261,weight,500gm
+264,variable,Varutha Verkadalai,,,Dried Fruits-Nuts & Seeds,http://otpindia.in/wp-content/uploads/2022/10/varutha-kadalai.jpg,,weight,"1000gm,500gm"
+265,variation,Varutha Verkadalai,192,240,,,264,weight,1000gm
+266,variation,Varutha Verkadalai,103,129,,,264,weight,500gm
+267,variable,Puli,,,Masalas & Spices,http://otpindia.in/wp-content/uploads/2022/10/tamarind.jpg,,weight,"1000gm,500gm"
+268,variation,Puli,159,198,,,267,weight,1000gm
+269,variation,Puli,79,99,,,267,weight,500gm
+270,variable,Karuppu Ulundu,,,Dals & Pulses,http://otpindia.in/wp-content/uploads/2022/09/ud.jpg,,weight,"1000gm,500gm"
+271,variation,Karuppu Ulundu,143,179,,,270,weight,1000gm
+272,variation,Karuppu Ulundu,71,89,,,270,weight,500gm
+273,variable,Kudampuli,,,Masalas & Spices,http://otpindia.in/wp-content/uploads/2022/10/kpuli.jpg,,weight,"1000gm,500gm"
+274,variation,Kudampuli,370,463,,,273,weight,1000gm
+275,variation,Kudampuli,185,232,,,273,weight,500gm
+276,variable,Nattu Karuppatti,,,Salt-Sugar & Jaggery,http://otpindia.in/wp-content/uploads/2022/09/karuppati.jpg,,weight,"1000gm,500gm"
+277,variation,Nattu Karuppatti,331,413,,,276,weight,1000gm
+278,variation,Nattu Karuppatti,165,207,,,276,weight,500gm
+279,variable,Nattu Sarkkarai ,,,Salt-Sugar & Jaggery,http://otpindia.in/wp-content/uploads/2022/09/country-sugar.jpg,,weight,"1000gm,500gm"
+280,variation,Nattu Sarkkarai ,79,99,,,279,weight,1000gm
+281,variation,Nattu Sarkkarai ,40,50,,,279,weight,500gm
+282,variable,Panakatkandu OG,,,Salt-Sugar & Jaggery,http://otpindia.in/wp-content/uploads/2022/09/palm-crystal-sugar.jpg,,weight,"1000gm,500gm,250gm,100gm"
+283,variation,Panakatkandu OG,450,562,,,282,weight,1000gm
+284,variation,Panakatkandu OG,225,281,,,282,weight,500gm
+285,variation,Panakatkandu OG,112,141,,,282,weight,250gm
+286,variation,Panakatkandu OG,45,56,,,282,weight,100gm
+287,variable,Thozhi Ulundu,,,Dals & Pulses,http://otpindia.in/wp-content/uploads/2022/09/uds.jpg,,weight,"1000gm,500gm"
+288,variation,Thozhi Ulundu,148,185,,,287,weight,1000gm
+289,variation,Thozhi Ulundu,74,93,,,287,weight,500gm
+290,variable,Indhuppu (Rock),,,Salt-Sugar & Jaggery,http://otpindia.in/wp-content/uploads/2022/09/rsalt.jpg,,weight,"1000gm,500gm"
+291,variation,Indhuppu (Rock),79,99,,,290,weight,1000gm
+292,variation,Indhuppu (Rock),40,50,,,290,weight,500gm
+293,variable,Indhuppu (Salt),,,Salt-Sugar & Jaggery,http://otpindia.in/wp-content/uploads/2022/09/rsltpwdr.jpg,,weight,"1000gm,500gm"
+294,variation,Indhuppu (Salt),79,99,,,293,weight,1000gm
+295,variation,Indhuppu (Salt),40,50,,,293,weight,500gm
+296,variable,Vellea Beens,,,Dals & Pulses,http://otpindia.in/wp-content/uploads/2022/10/vellaibean.jpg,,weight,"1000gm,500gm"
+297,variation,Vellea Beens,130,162,,,296,weight,1000gm
+298,variation,Vellea Beens,65,81,,,296,weight,500gm
+299,variable,salem Channa,,,Dals & Pulses,http://otpindia.in/wp-content/uploads/2022/10/channa.jpg,,weight,"1000gm,500gm"
+300,variation,salem Channa,99,124,,,299,weight,1000gm
+301,variation,salem Channa,50,63,,,299,weight,500gm
+302,variable,Sona Masoori,,,Tradition Rice,http://otpindia.in/wp-content/uploads/2022/10/sona-masuri-rice.jpg,,weight,"1000gm,500gm"
+303,variation,Sona Masoori,99,124,,,302,weight,1000gm
+304,variation,Sona Masoori,50,63,,,302,weight,500gm
+
+,,,,
+
+
+,,,,
