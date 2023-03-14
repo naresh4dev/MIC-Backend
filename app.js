@@ -42,7 +42,7 @@ app.post('/post',(req,res)=>{
     res.json({res:true});
 });
 
-app.listen(proccess.env.PORT,(err)=>{
+app.listen(process.env.PORT,(err)=>{
     if(!err)
         console.log("Server Initiated at port 3000");
     else 
