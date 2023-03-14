@@ -9,11 +9,13 @@ router.post('/login',(req,res)=>{
     const request = req.app.locals.db.request();
     request.input('email',sql.VarChar,req.body.email);
     request.input('password',sql.NVarChar,req.body.password);
-    request.query(`select * from users where user_email = @email and password = @password`,(queryErr,result)=>{
+    request.query(`select * from users where user_email = @email`,(queryErr,result)=>{
         if(queryErr){
             console.error(queryErr);
             res.json({res:false});
         } else {
+            console.log(result);
+            console.log(req.body);
             if (result.recordset.length === 0) {
                 res.json({res:true,auth : false});
             } else {
@@ -43,17 +45,17 @@ router.post('/register',(req,res)=>{
             request.input('fname',sql.VarChar,user.fname);
             request.input('lname',sql.VarChar,user.lname);
             request.input('username',sql.VarChar,user.username);
-            request.input('password',sql.NVarChar,req.body.password);
+            request.input('password',sql.NVarChar,user.password);
             request.input('email',sql.VarChar,user.email);
             request.input('phone', sql.Numeric,user.phone);
-            request.query(`insert into users(fname,lname,username,user_email,password,phone) values(@fname,@lname,@username,@email,@password,@phone)`,(queryErr,result)=>{
+            request.query(`insert into users(fname,lname,username,user_email,password,phone) OUTPUT Inserted.user_id values(@fname,@lname,@username,@email,@password,@phone); `,(queryErr,result)=>{
                 if(queryErr){
                     console.error(queryErr);
                     res.json({res:false});
                 } else {
-                    res.json({res:true,result : result});
+                    console.log(result);
+                    res.json({res:true,user : result.recordsets[0]});
                 } 
-                
             });
         }
     });

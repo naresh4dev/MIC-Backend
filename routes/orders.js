@@ -15,4 +15,8 @@ router.post('/',(req,res)=>{
     });
 });
 
+router.post('/payment/:status',(req,res)=>{
+    
+});
+
 module.exports = router;

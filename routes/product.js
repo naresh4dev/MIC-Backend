@@ -15,6 +15,8 @@ function getRandomPrice() {
 
 let category; 
 let first = false;
+let img,flag = false;
+
 router.get('/update',(req,res)=>{
 
 fs.createReadStream('/Users/naresh_dev/Developments/MIC-Backend/routes/product_lists.csv')
@@ -22,24 +24,34 @@ fs.createReadStream('/Users/naresh_dev/Developments/MIC-Backend/routes/product_l
 .on('data',(data)=>{
     if (!first) {
         category = data.Categories;
-        first = true
+        img = data.Images;
+        first = true;
     } else {
-        if (data.Categories === ''){
-            data.Categories = category
-        } else if (data.Categories != category ) {
+        if (data.Categories === '' && data.Images===''){
+            
+            data.Categories = category;
+            
+        } else if (data.Categories != category && data.Images!=img) {
             category = data.Categories;
         }
+        if (data.Images === '') {
+            data.Images = img;
+            flag = true;
+        }else if (data.Images !=img) {
+            img = data.Images;
+            flag = false;
+        }
     } 
-    if (data.ID!=undefined && data.Categories != undefined ) {
+    if (data.ID!=undefined && data.Categories != undefined && flag) {
      const price = getRandomPrice();   
-     insertDataToDB(data.Name ,data.Categories, price.price, price.sale_price, price.ministore, data.weight);   
+     insertDataToDB(data.Name ,data.Categories, price.price, price.sale_price, price.ministore, data.weight, data.Images);   
     }
     console.log(data.ID, );
     
 }).on('end',()=>{
     console.log('Successfully read');
 });
-    async function  insertDataToDB(name,cat,rp,sp,mp,weight){
+    async function  insertDataToDB(name,cat,rp,sp,mp,weight,images){
         const request = req.app.locals.db.request();
         request.input('name',sql.NVarChar,name);
         request.input('cat',sql.NVarChar,cat);
@@ -47,7 +59,8 @@ fs.createReadStream('/Users/naresh_dev/Developments/MIC-Backend/routes/product_l
         request.input('sp',sql.Decimal,sp);
         request.input('mp', sql.Decimal,mp);
         request.input('weight',sql.NVarChar,weight);
-        const result = await request.query('insert into items(item_name,sale_price,regular_price,ministore_price,item_weight,category) values(@name,@sp,@rp,@mp,@weight,@cat)');
+        request.input('img',sql.NVarChar(100),images);
+        const result = await request.query('insert into items(item_name,sale_price,regular_price,ministore_price,item_weight,category,images) values(@name,@sp,@rp,@mp,@weight,@cat,@img)');
         console.log(result);
     }
 });

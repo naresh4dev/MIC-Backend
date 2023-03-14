@@ -32,12 +32,10 @@ const appPool = new sql.ConnectionPool(config)
 appPool.connect().then(pool =>{
     app.locals.db = pool;
     console.log('Successfully SQL SERVER Connected');
-
 }).catch(err=>{
     console.error("Error in connecting to SQL SERVER");
     console.log(err);
 });
-
 
 app.post('/post',(req,res)=>{
     console.log(req.body.msg);
