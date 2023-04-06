@@ -49,7 +49,6 @@ router.get('/',(req,res)=>{
                     });
                 }
                 }
-
                 res.json({chart : orgChartJson});
             } else {
                 console.log(queryErr);

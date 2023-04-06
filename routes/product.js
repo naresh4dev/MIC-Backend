@@ -136,6 +136,12 @@ router.get('/home',(req,res)=>{
 });
 
 
+router.get('/category',(req,res)=>{
+  req.app.locals.db.query('select distinct category from items',(queryErr,result)=>{
+    res.json({res:true,data:result.recordset});
+  });
+});
+
 
 module.exports = router;
 
