@@ -3,6 +3,7 @@ const express = require('express');
 const auth_router = require('./routes/auth');
 const product_router = require('./routes/product');
 const order_router = require('./routes/orders');
+const mlm_router = require('./routes/mlm');
 const sql = require('mssql');
 const bodyParser = require('body-parser');
 const corsOrgin = require('cors')
@@ -18,6 +19,7 @@ app.use(bodyParser.urlencoded(true));
 app.use('/api/auth',auth_router);
 app.use('/api/products',product_router);
 app.use('/api/orders',order_router);
+app.use('/api/tree/',mlm_router);
 const config = {
     user : process.env.SQL_USER,
     database : process.env.SQL_DB_NAME,
@@ -57,4 +59,6 @@ app.listen(process.env.PORT,(err)=>{
     else 
         console.log(err);
 });
+
+
 
