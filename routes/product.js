@@ -72,12 +72,25 @@ router.get('/update', (req, res) => {
 
 router.get('/', (req, res) => {
     try {
-        req.app.locals.db.query('select * from items', (queryErr, result) => {
+        console.log(req.query);
+        if (req.query.category == undefined) {
+          req.app.locals.db.query('select * from items', (queryErr, result) => {
+              res.json({
+                  res: true,
+                  products: result.recordset
+              });
+          });
+        } else {
+          const request = req.app.locals.db.request();
+          request.input('category',sql.NVarChar,req.query.category);
+          request.query(`select * from items where category = @category`, (queryErr, result) => {
             res.json({
                 res: true,
                 products: result.recordset
             });
         });
+        } 
+        
     } catch (err) {
         console.err(err);
         res.json({
