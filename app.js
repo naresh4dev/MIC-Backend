@@ -6,6 +6,7 @@ const order_router = require('./routes/orders');
 const sql = require('mssql');
 const bodyParser = require('body-parser');
 const corsOrgin = require('cors')
+const neo4j_driver = require('./connections/neo4j-connect');
 const app = express();
 const corsOptions = {
     origin: 'http://localhost:3000',
@@ -35,7 +36,15 @@ appPool.connect().then(pool =>{
 }).catch(err=>{
     console.error("Error in connecting to SQL SERVER");
     console.log(err);
+
 });
+
+let session 
+neo4j_driver().then((newdriver)=>{
+    session = newdriver.session();
+    session.run('CREATE (p:Person) ');
+}).catch('ERROR');
+
 
 app.post('/post',(req,res)=>{
     console.log(req.body.msg);
@@ -44,7 +53,8 @@ app.post('/post',(req,res)=>{
 
 app.listen(process.env.PORT,(err)=>{
     if(!err)
-        console.log("Server Initiated at port 3000");
+        console.log(`Server Initiated at port ${process.env.PORT}`);
     else 
         console.log(err);
 });
+
