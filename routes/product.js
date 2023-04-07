@@ -115,11 +115,11 @@ router.get('/home',(req,res)=>{
         productsData.forEach(row => {
           if (row.category == "Millets") {
             resData.Millets.push(row);
-          } else if (row.category == "Masalas & Spices") {
+          } else if (row.category == "Masalas and Spices") {
             resData['Masalas & Spices'].push(row);
           } else if (row.category == "Tradition Rice") {
             resData['Tradition Rice'].push(row);
-          } else if (row.category == "Salt-Sugar & Jaggery") {
+          } else if (row.category == "Salt-Sugar and Jaggery") {
             resData['Special Offer'].push(row);
           }
         });
