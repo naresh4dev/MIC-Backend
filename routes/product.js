@@ -11,26 +11,33 @@ function getRandomPrice() {
     const random_price = Math.floor(Math.random() * (300 - 50 + 1) + 50);
     const sale_price = random_price - (random_price * 5 / 100);
     const ministore = random_price - (random_price * 15 / 100);
+    const ministore_bonus = Math.floor(Math.random() * (30 - 2 + 1) + 50);
     return {
         price: random_price,
         sale_price: sale_price,
         ministore: ministore,
+        bonus : ministore_bonus
     };
 }
 
-let category;
-let first = false;
-let img, flag = false;
 
 router.get('/update', (req, res) => {
-
+    let product_name='';
+    let category;
+    let product_id
+    let newfirst = true;
+    let first = true;
+    let img, flag = false;
+    let count = 1;
     fs.createReadStream('/Users/naresh_dev/Developments/MIC-Backend/routes/product_lists.csv')
         .pipe(csv())
         .on('data', (data) => {
-            if (!first) {
+          
+            if (first) {
                 category = data.Categories;
+                product_name = data.name;
                 img = data.Images;
-                first = true;
+                first = false;
             } else {
                 if (data.Categories === '' && data.Images === '') {
 
@@ -49,24 +56,59 @@ router.get('/update', (req, res) => {
             }
             if (data.ID != undefined && data.Categories != undefined && flag) {
                 const price = getRandomPrice();
-                insertDataToDB(data.Name, data.Categories, price.price, price.sale_price, price.ministore, data.weight, data.Images);
+                // if(data.Categories == "Dals & Pulses"){
+                //   data.Categories="C001";
+                // } else if (data.Categories == "Dried Fruits-Nuts & Seeds") {
+                //   data.Categories="C002";
+                // } else if (data.Categories == "Masalas & Spices") {
+                //   data.Categories="C003";
+                // } else if (data.Categories == "Millets") {
+                //   data.Categories="C004";
+                // } else if (data.Categories == "Salt-Sugar and Jaggery") {
+                //   data.Categories="C005";
+                 count+=1;
+                insertDataToDB(data.Name, data.Categories, price.price, price.sale_price, price.ministore,data.weight, data.Images,price.bonus);
             }
+
             console.log(data.ID, );
 
         }).on('end', () => {
             console.log('Successfully read');
         });
-    async function insertDataToDB(name, cat, rp, sp, mp, weight, images) {
+    async function insertDataToDB(name, cat, rp, sp, mp, weight, images,bonus) {
         const request = req.app.locals.db.request();
         request.input('name', sql.NVarChar, name);
         request.input('cat', sql.NVarChar, cat);
         request.input('rp', sql.Decimal, rp);
         request.input('sp', sql.Decimal, sp);
         request.input('mp', sql.Decimal, mp);
+        request.input('bonus', sql.Decimal, bonus);
+        request.input('tax', sql.Int, 5);
+        request.input('min', sql.Int, 30);
+        request.input('stock', sql.Int, 150);
         request.input('weight', sql.NVarChar, weight);
         request.input('img', sql.NVarChar(100), images);
-        const result = await request.query('insert into items(item_name,sale_price,regular_price,ministore_price,item_weight,category,images) values(@name,@sp,@rp,@mp,@weight,@cat,@img)');
-        console.log(result);
+       
+        const query = `${ product_name!=name && newfirst?`INSERT into products(product_name, category,product_tax,product_image)values(@name,@cat,@tax,@img);`:``} insert into items(sale_price,regular_price,prime_price,item_weight,ministore_product_bonus,ministore_min_qty,item_stock,product_id) values(@sp,@rp,@mp,@weight,@bonus,@min,@stock,(select TOP 1 product_id from products order by id desc)) `
+        if (newfirst) {
+          request.query('INSERT into products(product_name, category,product_tax,product_image) output inserted.product_id values(@name,@cat,@tax,@img);')    
+          request.input('ppid',sql.NVarChar, name);
+          request.query('insert into items(sale_price,regular_price,prime_price,item_weight,ministore_product_bonus,ministore_min_qty,item_stock,product_id) values(@sp,@rp,@mp,@weight,@bonus,@min,@stock,@ppid)')
+         
+         
+          newfirst=false
+        } else if (product_name!=name) {
+          request.query('INSERT into products(product_name, category,product_tax,product_image) output inserted.product_id values(@name,@cat,@tax,@img);')  
+          request.input('id',sql.NVarChar, name);
+          request.query('insert into items(sale_price,regular_price,prime_price,item_weight,ministore_product_bonus,ministore_min_qty,item_stock,product_id) values(@sp,@rp,@mp,@weight,@bonus,@min,@stock,@id)')
+            
+         
+          product_name=name;
+        } else {
+          request.input('pid',sql.NVarChar, name);
+          await request.query('insert into items(sale_price,regular_price,prime_price,item_weight,ministore_product_bonus,ministore_min_qty,item_stock,product_id) values(@sp,@rp,@mp,@weight,@bonus,@min,@stock,@pid)')
+        }
+       
     }
 });
 
@@ -74,20 +116,89 @@ router.get('/', (req, res) => {
     try {
         console.log(req.query);
         if (req.query.category == undefined) {
-          req.app.locals.db.query('select * from items', (queryErr, result) => {
-              res.json({
-                  res: true,
-                  products: result.recordset
+          req.app.locals.db.query('select p.product_id,p.product_name,p.category,p.product_tax,p.product_image,item.item_id,item.item_stock,item.sale_price,item.regular_price,item.prime_price,item.ministore_min_qty,item.ministore_product_bonus,item.item_weight,c.category_name from products as p join items as item  on p.product_id=item.product_id join categories as c on p.category=c.category_id where p.product_status=1 ', (queryErr, result) => {
+            if(queryErr) {
+              res.json({res:false});
+              console.log(queryErr);
+            } else {
+              const data = result.recordset;
+
+              const productItemsDict = {};
+
+              // iterate through each element of the given JSON array
+              data.forEach((d) => {
+                const { item_id,sale_price,regular_price,item_weight,ministore_min_qty,ministore_product_bonus, item_stock,prime_price } = d;
+                const {product_id,product_image,product_name,product_tax,category} = d;
+                // if the product_id is not already present in the productItemsDict
+                if (!productItemsDict[product_id]) {
+                  // create a new array with the item_id as value
+                  productItemsDict[product_id] = {
+                    product_id,
+                    product_image,
+                    product_name,
+                    category,
+                    product_tax,
+                    items : []
+                  };
+                }
+
+                // append the item_id to the array corresponding to the product_id in the productItemsDict
+                productItemsDict[product_id].items.push({sale_price,regular_price,item_weight,item_id,item_stock,ministore_min_qty,ministore_product_bonus,prime_price});
               });
+
+              
+
+              // iterate through the productItemsDict and create a new array of objects
+              
+              res.json({
+                res: true,
+                products: productItemsDict
+            });
+            } 
+            
           });
         } else {
           const request = req.app.locals.db.request();
           request.input('category',sql.NVarChar,req.query.category);
-          request.query(`select * from items where category = @category`, (queryErr, result) => {
-            res.json({
-                res: true,
-                products: result.recordset
-            });
+          request.query(`select p.product_id,p.product_name,p.category,p.product_tax,p.product_image,item.item_id,item.item_stock,item.sale_price,item.regular_price,item.prime_price,item.ministore_min_qty,item.ministore_product_bonus,item.item_weight,c.category_name from products as p join items as item  on p.product_id=item.product_id join categories as c on p.category=c.category_id where p.product_status=1 p.category=@category `, (queryErr, result) => {
+            if(queryErr) {
+              res.json({res:false});
+              console.log(queryErr)
+            } else {
+              const data = result.recordset;
+
+              const productItemsDict = {};
+
+              // iterate through each element of the given JSON array
+              data.forEach((d) => {
+                const { item_id,sale_price,regular_price,item_weight,ministore_min_qty,ministore_product_bonus, item_stock,prime_price } = d;
+                const {product_id,product_image,product_name,product_tax,category} = d;
+                // if the product_id is not already present in the productItemsDict
+                if (!productItemsDict[product_id]) {
+                  // create a new array with the item_id as value
+                  productItemsDict[product_id] = {
+                    product_id,
+                    product_image,
+                    product_name,
+                    category,
+                    product_tax,
+                    items : []
+                  };
+                }
+
+                // append the item_id to the array corresponding to the product_id in the productItemsDict
+                productItemsDict[product_id].items.push({sale_price,regular_price,item_weight,item_id,item_stock,ministore_min_qty,ministore_product_bonus,prime_price});
+              });
+
+              
+
+              // iterate through the productItemsDict and create a new array of objects
+              
+                res.json({
+                  res: true,
+                  products: productItemsDict
+              });
+            }
         });
         } 
         
@@ -102,13 +213,13 @@ router.get('/', (req, res) => {
 router.get('/home',(req,res)=>{
 
   try {
-    req.app.locals.db.query('select * from items',(queryErr,result)=>{
+    req.app.locals.db.query('select p.product_id,p.product_name,p.category,p.product_tax,p.product_image,item.item_id,item.item_stock,item.sale_price,item.regular_price,item.prime_price,item.ministore_min_qty,item.ministore_product_bonus,item.item_weight from products as p join items as item on p.product_id=item.product_id where p.product_status=1',(queryErr,result)=>{
 
       if (!queryErr) {
         const productsData = result.recordset;
         const resData = {
           'Millets' : [],
-          'Masalas & Spices' : [],
+          'Masalas and Spices' : [],
           'Tradition Rice' : [],
           'Special Offer' : []
         }
@@ -116,7 +227,7 @@ router.get('/home',(req,res)=>{
           if (row.category == "Millets") {
             resData.Millets.push(row);
           } else if (row.category == "Masalas and Spices") {
-            resData['Masalas & Spices'].push(row);
+            resData['Masalas and Spices'].push(row);
           } else if (row.category == "Tradition Rice") {
             resData['Tradition Rice'].push(row);
           } else if (row.category == "Salt-Sugar and Jaggery") {
@@ -136,8 +247,92 @@ router.get('/home',(req,res)=>{
 });
 
 
+router.post('/cart/:cart_action',(req,res)=>{
+  const request = req.app.locals.db.request();
+  if (req.params.cart_action == 'add') {
+    request.input('item_id',sql.NVarChar,req.body.item_id);
+    request.input('cart_id', sql.NVarChar,req.body.cart_id);
+    request.query('insert into CartItems(cart_id,item_id) values(@cart_id,@item_id);',(queryErr,result)=>{
+      if(!queryErr) {
+        res.json({res:true, action : true});
+      } else {
+        res.json({res:false});
+      }
+    });
+  } else if (req.params.cart_action == 'get') {
+    request.input('user_id',sql.NVarChar,req.user.id);
+    request.query('select cart.cart_id, item.item_id, item.quantity,itd.sale_price,itd.regular_price, itd.prime_price, itd.ministore_min_qty, itd.item_weight, itd.item_stock, itd.ministore_product_bonus,p.product_id ,p.product_name, p.product_tax, p.product_image,p.category from CartTable as cart join CartItems as item join on  cart.cart_id=item.cart_id join items as itd on itd.item_id=item.item_id join product as p on p.product_id=itd.product_id where cart.user_id=@user_id;',(queryErr,result)=>{
+      if(!queryErr) {
+        res.json({res:true, cart : result.recordset, action : true});
+      } else {
+        res.json({res:false});
+      }
+    });
+  } else if (req.params.cart_action == 'update') {
+    request.input('item_id',sql.NVarChar,req.body.item_id);
+    request.input('cart_id', sql.NVarChar,req.body.cart_id);
+    request.input('qty',sql.Int,req.body.quanitiy);
+    request.query('update CartItems set quantity=@qty where cart_id=@cart_id and item_id=@item_id',(queryErr,result)=>{
+      if(!queryErr) {
+        res.json({res:true, action:true});
+      } else {
+        res.json({res:false});
+      }
+    });
+
+  } else if (req.params.cart_action == 'remove') {
+    request.input('item_id',sql.NVarChar,req.body.item_id);
+    request.input('cart_id', sql.NVarChar,req.body.cart_id);
+    request.query('delete CartItems where cart_id=@cart_id and item_id=@item_id',(queryErr,result)=>{
+      if(!queryErr) {
+        res.json({res:true,action : true});
+      } else {
+        res.json({res:false});
+      }
+    });
+  } else {
+    res.json({res:true, action : false});
+  }
+});
+
+router.post('/wishlist/:action',(req,res)=>{
+  const request = req.app.locals.db.request();
+  if(req.params.action == 'add') {
+    request.input('item_id',sql.NVarChar,req.body.item_id);
+    request.input('wishlist_id', sql.NVarChar,req.body.wishlist_id);
+    request.query('insert into WishlistItems(cart_id,item_id) values(@wishlist_id,@item_id);',(queryErr,result)=>{
+      if(!queryErr) {
+        res.json({res:true, action : true});
+      } else {
+        res.json({res:false});
+      }
+    });
+  } else if (req.params.action == 'get') {
+    request.input('user_id',sql.NVarChar,req.user.id);
+    request.query('select cart.wishlist_id, item.item_id,itd.sale_price,itd.regular_price, itd.prime_price, itd.ministore_min_qty, itd.item_weight, itd.item_stock, itd.ministore_product_bonus,p.product_id ,p.product_name, p.product_tax, p.product_image,p.category from WishlistTable as wishlist join WishlistItems as item join on  wishlist.wishlist_id=item.wishlist_id join items as itd on itd.item_id=item.item_id join product as p on p.product_id=itd.product_id where cart.user_id=@user_id;',(queryErr,result)=>{
+      if(!queryErr) {
+        res.json({res:true, cart : result.recordset, action : true});
+      } else {
+        res.json({res:false});
+      }
+    });
+  } else if (req.params.action == 'remove') {
+      request.input('item_id',sql.NVarChar,req.body.item_id);
+      request.input('wishlist_id', sql.NVarChar,req.body.wishlist_id);
+      request.query('delete WishlistItems where cart_id=@wishlist_id and item_id=@item_id',(queryErr,result)=>{
+        if(!queryErr) {
+          res.json({res:true, action:true});
+        } else {
+          res.json({res:false});
+        }
+      });
+  } else {
+    res.json({res:true, action : false});
+  }
+});
+
 router.get('/category',(req,res)=>{
-  req.app.locals.db.query('select distinct category from items',(queryErr,result)=>{
+  req.app.locals.db.query('select distinct category_id,category_name from  categories',(queryErr,result)=>{
     res.json({res:true,data:result.recordset});
   });
 });

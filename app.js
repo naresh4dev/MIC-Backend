@@ -11,6 +11,7 @@ const session = require('express-session');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const bcrypt = require('bcrypt');
+const cookieParser = require('cookie-parser');
 const app = express();
 const corsOptions = {
     origin: 'http://localhost:3000',
@@ -20,6 +21,7 @@ const corsOptions = {
 app.use(corsOrgin(corsOptions))
 app.use(bodyParser.urlencoded({extended : false}));
 app.use(session({secret :process.env.SESSION_SECRET}));
+app.use(cookieParser())
 app.use(passport.initialize());
 app.use(passport.session());
 app.use('/api/auth',auth_router);
@@ -33,7 +35,7 @@ passport.serializeUser(function(user, done) {
     done(null, user);
 });
 
-passport.deserializeUser(function(id, done) {
+passport.deserializeUser(function(user, done) {
     const config = {
         user : process.env.SQL_USER,
         database : process.env.SQL_DB_NAME,
@@ -50,15 +52,15 @@ passport.deserializeUser(function(id, done) {
             console.log(err)
         }
         const request = new sql.Request();
-        request.query(`select user_id from users where user_id=${id}`,(queryErr,result)=>{
+        request.input('user_id',sql.VarChar,user.id);
+        const query = `select user_id from ${user.type=='prime'?'PrimeUsers':'users'} where user_id=@user_id`;
+        request.query(query,(queryErr,result)=>{
             if(queryErr) {
-                done(queryErr,false);
+                return done(queryErr,false);
                 console.log(queryErr)
             } else {
-                console.log("Done")
-                done(null, result.recordset[0].user_id);
+               return  done(null, {id : result.recordset[0].user_id,type : 'user'});
             }
-            
             
         })
     })
@@ -84,7 +86,30 @@ passwordField: 'password'},function (req ,username,password,cb){
                 bcrypt.compare(password,result.recordset[0].password,(compareErr,compareRes)=>{
                     if(compareErr) return cb(compareErr,false)
                     else if(!compareRes) return cb(null,false)
-                    else return cb(null, result.recordset[0].user_id);
+                    else return cb(null, {id : result.recordset[0].user_id, type: 'user'});
+                });
+            }
+        }
+    });
+}));
+
+passport.use('prime-login',new LocalStrategy({passReqToCallback:true,usernameField: 'email',
+passwordField: 'password'},function (req ,username,password,cb){
+    const request = req.app.locals.db.request();
+    request.input('user_id',sql.VarChar,username);
+    request.query(`select user_id,user_password from PrimeUsers where user_id = @user_id`,(queryErr,result)=>{
+        if(queryErr){
+            console.error(queryErr);
+           return cb(null, false)
+        } else {
+            if (result.recordset.length === 0) {
+               
+               return cb(null, false, {message : "Invalid Credentials"})
+            } else {
+                bcrypt.compare(password,result.recordset[0].password,(compareErr,compareRes)=>{
+                    if(compareErr) return cb(compareErr,false)
+                    else if(!compareRes) return cb(null,false)
+                    else return cb(null, {id : result.recordset[0].member_id , type : "prime"});
                 });
             }
         }

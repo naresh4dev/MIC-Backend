@@ -5,8 +5,8 @@ const bodyParser = require('body-parser');
 
 
 router.use(bodyParser.urlencoded(true));
-router.post('/',(req,res)=>{
-    console.log(req.body);
+
+router.post('/createorder',(req,res)=>{
     razorInstance.orders.create({
         amount : (parseInt(req.body.total_amount)*100),
         currency : 'INR'
@@ -15,7 +15,7 @@ router.post('/',(req,res)=>{
     });
 });
 
-router.post('/payment/:status',(req,res)=>{
+router.post('/payment',(req,res)=>{
     
 });
 

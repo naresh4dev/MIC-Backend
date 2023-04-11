@@ -5,12 +5,24 @@ const { query } = require('express');
 const sql = require('mssql');
 const passport = require('passport');
 
-
 router.use(bodyParser.urlencoded({extended:false}));
 
-router.post('/passport', passport.authenticate('login'),(req,res)=>{
+router.post('/signin', passport.authenticate('login'),(req,res)=>{
+    res.header('Access-Control-Allow-Credentials', 'true');
     res.json({res:req.user});
 });
+
+router.post('/prime', passport.authenticate('prime-login'),(req,res)=>{
+    res.json({res:req.user});
+});
+
+router.get('/auth',(req,res)=>{
+    if(req.isAuthenticated()){
+        res.json({res:req.user});
+    } else {
+        res.json({res:false});
+    }
+})
 
 router.post('/login',(req,res)=>{
     const request = req.app.locals.db.request();
@@ -60,8 +72,15 @@ router.post('/register',(req,res)=>{
                     console.error(queryErr);
                     res.json({res:false});
                 } else {
-                    console.log(result);
-                    res.json({res:true,user : result.recordsets[0]});
+                    request.input('id',sql.NVarChar,result.recordset[0].user_id);
+                    request.query('insert into CartTable(user_id) values(@id);insert into WishlistTable(user_id) values(@id);',(queryErr,result)=>{
+                        if(!queryErr) {
+                            res.json({res:true});
+                        } else {
+                            res.json({res:false});
+                            console.log(queryErr);
+                        }
+                    });
                 } 
             });
         }
