@@ -4,15 +4,15 @@ const bodyParser = require('body-parser');
 const { query } = require('express');
 const sql = require('mssql');
 const passport = require('passport');
-const localStrategy = require('passport-local');
 
 
-passport.use(new localStrategy(function verify(username,password,cb){
-    
-}))
+router.use(bodyParser.urlencoded({extended:false}));
 
-router.use(bodyParser.urlencoded(true));
-router.post('/login',passport.authenticate('local'),(req,res)=>{
+router.post('/passport', passport.authenticate('login'),(req,res)=>{
+    res.json({res:req.user});
+});
+
+router.post('/login',(req,res)=>{
     const request = req.app.locals.db.request();
     request.input('email',sql.VarChar,req.body.email);
     request.input('password',sql.NVarChar,req.body.password);
