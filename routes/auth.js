@@ -9,7 +9,18 @@ router.use(bodyParser.urlencoded({extended:false}));
 
 router.post('/signin', passport.authenticate('login'),(req,res)=>{
     res.header('Access-Control-Allow-Credentials', 'true');
-    res.json({res:req.user});
+    const request = req.app.locals.db.request();
+    
+    request.input('user_id',sql.NVarChar,req.user.id);
+    request.query(`select user_id,username, user_email from users where user_id=@user_id`,(queryErr,result)=>{
+        if(!queryErr) {
+            
+            res.json({res:true, user:{id : req.user.id, type : req.user.type, username : result.recordset[0].username,email : result.recordset[0].user_email }});
+        } else {
+            console.log(queryErr);
+            res.json({res:false});
+        }
+    });
 });
 
 router.post('/prime', passport.authenticate('prime-login'),(req,res)=>{

@@ -152,15 +152,15 @@ router.get('/', (req, res) => {
               
               res.json({
                 res: true,
-                products: productItemsDict
+                products: Object.values(productItemsDict)
             });
             } 
             
           });
         } else {
           const request = req.app.locals.db.request();
-          request.input('category',sql.NVarChar,req.query.category);
-          request.query(`select p.product_id,p.product_name,p.category,p.product_tax,p.product_image,item.item_id,item.item_stock,item.sale_price,item.regular_price,item.prime_price,item.ministore_min_qty,item.ministore_product_bonus,item.item_weight,c.category_name from products as p join items as item  on p.product_id=item.product_id join categories as c on p.category=c.category_id where p.product_status=1 p.category=@category `, (queryErr, result) => {
+          request.input('category',sql.NVarChar,`${req.query.category}`);
+          request.query(`select p.product_id,p.product_name,p.category,p.product_tax,p.product_image,item.item_id,item.item_stock,item.sale_price,item.regular_price,item.prime_price,item.ministore_min_qty,item.ministore_product_bonus,item.item_weight,c.category_name from products as p join items as item  on p.product_id=item.product_id join categories as c on p.category=c.category_id where p.product_status=1 and p.category=@category`, (queryErr, result) => {
             if(queryErr) {
               res.json({res:false});
               console.log(queryErr)
@@ -196,7 +196,7 @@ router.get('/', (req, res) => {
               
                 res.json({
                   res: true,
-                  products: productItemsDict
+                  products: Object.values(productItemsDict)
               });
             }
         });
@@ -247,32 +247,40 @@ router.get('/home',(req,res)=>{
 });
 
 
-router.post('/cart/:cart_action',(req,res)=>{
+router.post('/cart/:cart_action',(req,res,next)=>{
+  if(req.isAuthenticated()) {
+    next()
+  } 
+},(req,res)=>{
   const request = req.app.locals.db.request();
   if (req.params.cart_action == 'add') {
     request.input('item_id',sql.NVarChar,req.body.item_id);
-    request.input('cart_id', sql.NVarChar,req.body.cart_id);
-    request.query('insert into CartItems(cart_id,item_id) values(@cart_id,@item_id);',(queryErr,result)=>{
+    request.input('user_id',sql.NVarChar,req.user.id);
+    request.query('declare @cart_id NVARCHAR(50); set @cart_id=(select cart_id from CartTable where user_id=@user_id); insert into CartItems(cart_id,item_id) values(@cart_id,@item_id);',(queryErr,result)=>{
       if(!queryErr) {
         res.json({res:true, action : true});
       } else {
+        console.log(queryErr);
         res.json({res:false});
       }
     });
   } else if (req.params.cart_action == 'get') {
+    console.log(req.user);
     request.input('user_id',sql.NVarChar,req.user.id);
-    request.query('select cart.cart_id, item.item_id, item.quantity,itd.sale_price,itd.regular_price, itd.prime_price, itd.ministore_min_qty, itd.item_weight, itd.item_stock, itd.ministore_product_bonus,p.product_id ,p.product_name, p.product_tax, p.product_image,p.category from CartTable as cart join CartItems as item join on  cart.cart_id=item.cart_id join items as itd on itd.item_id=item.item_id join product as p on p.product_id=itd.product_id where cart.user_id=@user_id;',(queryErr,result)=>{
+    request.query('select cart.cart_id, item.item_id, item.quantity,itd.sale_price,itd.regular_price, itd.prime_price, itd.ministore_min_qty, itd.item_weight, itd.item_stock, itd.ministore_product_bonus,p.product_id ,p.product_name, p.product_tax, p.product_image,p.category from CartTable as cart join CartItems as item on  cart.cart_id=item.cart_id join items as itd on itd.item_id=item.item_id join products as p on p.product_id=itd.product_id where cart.user_id=@user_id;',(queryErr,result)=>{
       if(!queryErr) {
+        
         res.json({res:true, cart : result.recordset, action : true});
       } else {
+        console.log(queryErr);
         res.json({res:false});
       }
     });
   } else if (req.params.cart_action == 'update') {
     request.input('item_id',sql.NVarChar,req.body.item_id);
-    request.input('cart_id', sql.NVarChar,req.body.cart_id);
-    request.input('qty',sql.Int,req.body.quanitiy);
-    request.query('update CartItems set quantity=@qty where cart_id=@cart_id and item_id=@item_id',(queryErr,result)=>{
+    request.input('user_id',sql.NVarChar,req.user.id);
+    request.input('qty',sql.Int,req.body.quantity);
+    request.query('update item set quantity=@qty from CartItems as item join CartTable as c on item.cart_id=c.cart_id  where c.user_id=@user_id and item_id=@item_id',(queryErr,result)=>{
       if(!queryErr) {
         res.json({res:true, action:true});
       } else {
@@ -282,11 +290,12 @@ router.post('/cart/:cart_action',(req,res)=>{
 
   } else if (req.params.cart_action == 'remove') {
     request.input('item_id',sql.NVarChar,req.body.item_id);
-    request.input('cart_id', sql.NVarChar,req.body.cart_id);
-    request.query('delete CartItems where cart_id=@cart_id and item_id=@item_id',(queryErr,result)=>{
+    request.input('user_id',sql.NVarChar,req.user.id);
+    request.query('delete item  from CartItems as item join CartTable as cart on item.cart_id=cart.cart_id where cart.user_id=@user_id and item.item_id=@item_id',(queryErr,result)=>{
       if(!queryErr) {
         res.json({res:true,action : true});
       } else {
+        console.log(queryErr);
         res.json({res:false});
       }
     });

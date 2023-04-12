@@ -14,22 +14,32 @@ const bcrypt = require('bcrypt');
 const cookieParser = require('cookie-parser');
 const app = express();
 const corsOptions = {
-    origin: 'http://localhost:3000',
+    origin: 'https://mic-e-commerce-website.vercel.app',
     credentials: true, //access-control-allow-credentials:true
     optionSuccessStatus: 200
 }
 app.use(corsOrgin(corsOptions))
+app.use((req,res,next)=>{
+    res.header('Access-Control-Allow-Credentials', 'true');
+    next()
+})
 app.use(bodyParser.urlencoded({extended : false}));
 app.use(session({secret :process.env.SESSION_SECRET}));
 app.use(cookieParser())
 app.use(passport.initialize());
 app.use(passport.session());
+function addUserToRequest(req, res, next) {
+    if (req.isAuthenticated()) {
+      req.user = req.session.passport.user;
+      
+    }
+    next();
+}
+app.use(addUserToRequest);
 app.use('/api/auth',auth_router);
 app.use('/api/products',product_router);
 app.use('/api/orders',order_router);
 app.use('/api/tree/',mlm_router);
-
-
 
 passport.serializeUser(function(user, done) {
     done(null, user);
