@@ -128,7 +128,7 @@ router.get('/', (req, res) => {
               // iterate through each element of the given JSON array
               data.forEach((d) => {
                 const { item_id,sale_price,regular_price,item_weight,ministore_min_qty,ministore_product_bonus, item_stock,prime_price } = d;
-                const {product_id,product_image,product_name,product_tax,category} = d;
+                const {product_id,product_image,product_name,product_tax,category,category_name} = d;
                 // if the product_id is not already present in the productItemsDict
                 if (!productItemsDict[product_id]) {
                   // create a new array with the item_id as value
@@ -138,6 +138,7 @@ router.get('/', (req, res) => {
                     product_name,
                     category,
                     product_tax,
+                    category_name,
                     items : []
                   };
                 }
@@ -172,7 +173,7 @@ router.get('/', (req, res) => {
               // iterate through each element of the given JSON array
               data.forEach((d) => {
                 const { item_id,sale_price,regular_price,item_weight,ministore_min_qty,ministore_product_bonus, item_stock,prime_price } = d;
-                const {product_id,product_image,product_name,product_tax,category} = d;
+                const {product_id,product_image,product_name,product_tax,category,category_name} = d;
                 // if the product_id is not already present in the productItemsDict
                 if (!productItemsDict[product_id]) {
                   // create a new array with the item_id as value
@@ -182,6 +183,7 @@ router.get('/', (req, res) => {
                     product_name,
                     category,
                     product_tax,
+                    category_name,
                     items : []
                   };
                 }
@@ -217,13 +219,38 @@ router.get('/home',(req,res)=>{
 
       if (!queryErr) {
         const productsData = result.recordset;
+        const data = productsData;
+
+              const productItemsDict = {};
+
+              // iterate through each element of the given JSON array
+              data.forEach((d) => {
+                const { item_id,sale_price,regular_price,item_weight,ministore_min_qty,ministore_product_bonus, item_stock,prime_price } = d;
+                const {product_id,product_image,product_name,product_tax,category,category_name} = d;
+                // if the product_id is not already present in the productItemsDict
+                if (!productItemsDict[product_id]) {
+                  // create a new array with the item_id as value
+                  productItemsDict[product_id] = {
+                    product_id,
+                    product_image,
+                    product_name,
+                    category,
+                    product_tax,
+                    category_name,
+                    items : []
+                  };
+                }
+
+                // append the item_id to the array corresponding to the product_id in the productItemsDict
+                productItemsDict[product_id].items.push({sale_price,regular_price,item_weight,item_id,item_stock,ministore_min_qty,ministore_product_bonus,prime_price});
+              });
         const resData = {
           'Millets' : [],
           'Masalas and Spices' : [],
           'Tradition Rice' : [],
           'Special Offer' : []
         }
-        productsData.forEach(row => {
+        Object.values(productItemsDict).forEach(row => {
           if (row.category_name == "Millets") {
             resData.Millets.push(row);
           } else if (row.category_name == "Masalas and Spices") {
