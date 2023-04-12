@@ -213,7 +213,7 @@ router.get('/', (req, res) => {
 router.get('/home',(req,res)=>{
 
   try {
-    req.app.locals.db.query('select p.product_id,p.product_name,p.category,p.product_tax,p.product_image,item.item_id,item.item_stock,item.sale_price,item.regular_price,item.prime_price,item.ministore_min_qty,item.ministore_product_bonus,item.item_weight from products as p join items as item on p.product_id=item.product_id where p.product_status=1',(queryErr,result)=>{
+    req.app.locals.db.query('select cart.category_name,p.product_id,p.product_name,p.category,p.product_tax,p.product_image,item.item_id,item.item_stock,item.sale_price,item.regular_price,item.prime_price,item.ministore_min_qty,item.ministore_product_bonus,item.item_weight from products as p join items as item  on p.product_id=item.product_id join categories as cart on p.category=cart.category_id where p.product_status=1',(queryErr,result)=>{
 
       if (!queryErr) {
         const productsData = result.recordset;
@@ -224,13 +224,13 @@ router.get('/home',(req,res)=>{
           'Special Offer' : []
         }
         productsData.forEach(row => {
-          if (row.category == "Millets") {
+          if (row.category_name == "Millets") {
             resData.Millets.push(row);
-          } else if (row.category == "Masalas and Spices") {
+          } else if (row.category_name == "Masalas and Spices") {
             resData['Masalas and Spices'].push(row);
-          } else if (row.category == "Tradition Rice") {
+          } else if (row.category_name == "Tradition Rice") {
             resData['Tradition Rice'].push(row);
-          } else if (row.category == "Salt-Sugar and Jaggery") {
+          } else if (row.category_name == "Salt-Sugar and Jaggery") {
             resData['Special Offer'].push(row);
           }
         });
