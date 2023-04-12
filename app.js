@@ -14,7 +14,7 @@ const bcrypt = require('bcrypt');
 const cookieParser = require('cookie-parser');
 const app = express();
 const corsOptions = {
-    origin: 'https://mic-e-commerce-website.vercel.app',
+    origin: process.env.CORS_DOMAIN,
     credentials: true, //access-control-allow-credentials:true
     optionSuccessStatus: 200
 }
