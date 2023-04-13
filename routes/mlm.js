@@ -61,55 +61,59 @@ router.get('/',(req,res)=>{
 });
 
 router.post('/add',(req,res)=>{
-    // function insertUsersToDB(parentID,position,flag1,flag2,count) {
-    //     console.log(count);
-    //     if(count>=8) {
-            
-    //         return;
-    //     }
-    //     if(count <= 7) {
-    //         const request = req.app.locals.db.request();
-    //     request.input('name',sql.NVarChar,'admin');
-    //     request.input('password',sql.NVarChar,'Test@123');
-    //     request.input('year',sql.NChar,'23');
-    //     request.input('month',sql.NChar,'04');
-    //     request.input('type',sql.VarChar,'ADMIN');
-    //     request.input('parentID',sql.NVarChar,parentID);
-    //     request.input('position',sql.NChar,position);
-    //     request.query("DECLARE @outputTable TABLE (UserID NVARCHAR(50));Insert into PrimeUsers(user_name,user_parent_id,registered_month,registered_year,user_type,user_password,user_position) OUTPUT Inserted.user_id INTO @outputtable values (@name,@parentID,@month,@year,@type,@password,@position);Select UserID from @outputtable;",(queryErr,result)=>{
-    //         console.log(result.recordset[0]);
-    //         insertUsersToDB(result.recordset[0].UserID,'L',false,true,count+1);
-    //         insertUsersToDB(result.recordset[0].UserID,'R',true,false,count+1);
-            
-    //     });  
-    //     } 
-        
-        
-    // } 
-    // insertUsersToDB(null,null,true,true,1);
+    bcrypt.hash(req.body.password, 10, (err,hash)=>{ 
+        if(err) {
+            console.log(err);
+            res.json({res:false});
+        } else {
+            const request = req.app.locals.db.request();
+            request.input('name',sql.NVarChar,req.body.user_name);
+                request.input('password',sql.NVarChar,hash);
+                request.input('year',sql.NChar,'23');
+                request.input('month',sql.NChar,'04');
+                request.input('type',sql.VarChar,req.body.user_type);
+                request.input('parentID',sql.NVarChar,req.body.parentID);
+                request.input('position',sql.NChar,req.body.position);
+                request.query(" Insert into PrimeUsers(user_name,user_parent_id,registered_month,registered_year,user_type,user_password,user_position) values (@name,@parentID,@month,@year,@type,@password,@position);",(queryErr,result)=>{
+                    if(!queryErr) {
+                        res.json({res:true});
+                    } else {
+                        console.log(queryErr);
+                        res.json({res:false});
+                    }
+                });  
+        }
+    });
     
-    // for(let i=1;i<64;i++){
-
-    // }
-    const request = req.app.locals.db.request();
-    request.input('name',sql.NVarChar,req.body.user_name);
-        request.input('password',sql.NVarChar,'Test@123');
-        request.input('year',sql.NChar,'23');
-        request.input('month',sql.NChar,'04');
-        request.input('type',sql.VarChar,req.body.user_type);
-        request.input('parentID',sql.NVarChar,req.body.parentID);
-        request.input('position',sql.NChar,req.body.position);
-        request.query(" Insert into PrimeUsers(user_name,user_parent_id,registered_month,registered_year,user_type,user_password,user_position) values (@name,@parentID,@month,@year,@type,@password,@position);",(queryErr,result)=>{
-            if(!queryErr) {
-                res.json({res:true});
-            } else {
-                console.log(queryErr);
-                res.json({res:false});
-            }
-        });  
 })
 
-
+router.get('/update',(req,res)=>{
+     function insertUsersToDB(parentID,position,flag1,flag2,count) {
+        console.log(count);
+        if(count>=8) {
+            
+            return;
+        }
+        if(count <= 7) {
+            const request = req.app.locals.db.request();
+        request.input('name',sql.NVarChar,'admin');
+        request.input('password',sql.NVarChar,'$2b$10$My1HbZzlD2woZHvNMckDC.7L29hvrJ7C1rcuD4KLBrwsICe8cW/bG');
+        request.input('year',sql.NChar,'23');
+        request.input('month',sql.NChar,'04');
+        request.input('type',sql.VarChar,'ADMIN');
+        request.input('parentID',sql.NVarChar,parentID);
+        request.input('position',sql.NChar,position);
+        request.query("DECLARE @outputTable TABLE (UserID NVARCHAR(50));Insert into PrimeUsers(user_name,user_parent_id,registered_month,registered_year,user_type,user_password,user_position) OUTPUT Inserted.user_id INTO @outputtable values (@name,@parentID,@month,@year,@type,@password,@position);Select UserID from @outputtable;",(queryErr,result)=>{
+            console.log(result.recordset[0]);
+            insertUsersToDB(result.recordset[0].UserID,'L',false,true,count+1);
+            insertUsersToDB(result.recordset[0].UserID,'R',true,false,count+1);
+            
+        });  
+        } 
+        
+        
+    } 
+})
 
 
 module.exports = router;

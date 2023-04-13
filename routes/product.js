@@ -368,7 +368,7 @@ router.post('/wishlist/:action',(req,res)=>{
 });
 
 router.get('/category',(req,res)=>{
-  req.app.locals.db.query('select distinct category_id,category_name from  categories',(queryErr,result)=>{
+  req.app.locals.db.query('select category_id,category_name from  categories',(queryErr,result)=>{
     res.json({res:true,data:result.recordset});
   });
 });

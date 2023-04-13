@@ -146,10 +146,7 @@ appPool.connect().then(pool =>{
     console.log(err);
 
 });
-app.post('/post',(req,res)=>{
-    console.log(req.body.msg);
-    res.json({res:true});
-});
+
 
 app.listen(process.env.PORT,(err)=>{
     if(!err)
