@@ -116,10 +116,10 @@ passwordField: 'password'},function (req ,username,password,cb){
                
                return cb(null, false, {message : "Invalid Credentials"})
             } else {
-                bcrypt.compare(password,result.recordset[0].password,(compareErr,compareRes)=>{
+                bcrypt.compare(password,result.recordset[0].user_password,(compareErr,compareRes)=>{
                     if(compareErr) return cb(compareErr,false)
                     else if(!compareRes) return cb(null,false)
-                    else return cb(null, {id : result.recordset[0].member_id , type : "prime"});
+                    else return cb(null, {id : result.recordset[0].user_id , type : "prime"});
                 });
             }
         }

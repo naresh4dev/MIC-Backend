@@ -4,7 +4,7 @@ const router = require('express').Router();
 const bodyParser = require('body-parser');
 const sql = require('mssql');
 
-router.use(bodyParser.urlencoded(true));
+
 
 router.post('/createorder',(req,res)=>{
     razorInstance.orders.create({
@@ -20,13 +20,10 @@ router.post('/createorder',(req,res)=>{
     });
 });
 
-router.get('/all',(req,res,next)=>{
-    if(req.isAuthenticated())
-        next()
-},(req,res)=>{
+router.post('/all',(req,res)=>{
     const request = req.app.locals.db.request();
-    request.input('user_id', sql.NVarChar, req.user.id);
-    request.query('select order_id, total_amount, payment_status,payment_mode, order_status from Orders where user_id=@user_id',(queryErr,result)=>{
+    request.input('user_id', sql.NVarChar, req.body.user_id);
+    request.query('select order_id, total_amount, payment_status,payment_mode, order_status,payment_id from Orders where user_id=@user_id',(queryErr,result)=>{
         if(!queryErr) {
             res.json({res:true, orders : result.recordset});
         } else {
