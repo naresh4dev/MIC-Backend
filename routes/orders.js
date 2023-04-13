@@ -49,6 +49,7 @@ router.post('/payment/:status',(req,res)=>{
         request.input('total_amount',sql.Decimal,req.body.total_amount);
         request.input('pay_mode',sql.VarChar, 'razorpay');
         request.input('pay_status',sql.VarChar,'success');
+        request.input('order_status',sql.VarChar,'Order Received');
         request.query('Insert into Orders(ordered_month, ordered_year,user_id,total_amount,payment_status,payment_mode,order_status,payment_id) values(@month,@year,@user_id,@total_amount,@pay_status,@pay_mode,@order_status,@payment_id)',(queryErr,result)=>{
             if(!queryErr) {
 

@@ -103,7 +103,8 @@ router.get('/update',(req,res)=>{
         request.input('type',sql.VarChar,'ADMIN');
         request.input('parentID',sql.NVarChar,parentID);
         request.input('position',sql.NChar,position);
-        request.query("DECLARE @outputTable TABLE (UserID NVARCHAR(50));Insert into PrimeUsers(user_name,user_parent_id,registered_month,registered_year,user_type,user_password,user_position) OUTPUT Inserted.user_id INTO @outputtable values (@name,@parentID,@month,@year,@type,@password,@position);Select UserID from @outputtable;",(queryErr,result)=>{
+        request.input('plan_id',sql.NVarChar,'PLAN001');
+        request.query("DECLARE @outputTable TABLE (UserID NVARCHAR(50));Insert into PrimeUsers(user_name,user_parent_id,registered_month,registered_year,user_type,user_password,user_position,prime_plan_id) OUTPUT Inserted.user_id INTO @outputtable values (@name,@parentID,@month,@year,@type,@password,@position,@plan_id);Select UserID from @outputtable;",(queryErr,result)=>{
             console.log(result.recordset[0]);
             insertUsersToDB(result.recordset[0].UserID,'L',false,true,count+1);
             insertUsersToDB(result.recordset[0].UserID,'R',true,false,count+1);
