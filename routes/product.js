@@ -205,7 +205,7 @@ router.get('/', (req, res) => {
         } 
         
     } catch (err) {
-        console.err(err);
+        console.errors(err);
         res.json({
             res: false
         });
