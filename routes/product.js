@@ -14,7 +14,7 @@ function getRandomPrice() {
     const ministore_bonus = Math.floor(Math.random() * (30 - 2 + 1) + 50);
     return {
         price: random_price,
-        sale_price: sale_price,
+        sale_pri  ce: sale_price,
         ministore: ministore,
         bonus : ministore_bonus
     };
@@ -205,7 +205,7 @@ router.get('/', (req, res) => {
         } 
         
     } catch (err) {
-        console.errors(err);
+        console.error(err);
         res.json({
             res: false
         });
