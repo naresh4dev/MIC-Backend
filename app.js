@@ -31,7 +31,11 @@ app.use((req,res,next)=>{
 app.use(bodyParser.urlencoded({extended : false}));
 app.use(session({
     secret :process.env.SESSION_SECRET,
-    cookie : {secure : true}
+    cookie : {
+        maxAge: 24 * 60 * 60 * 1000,
+        secure : true
+    },
+    resave : true,
 }));
 app.use(cookieParser())
 app.use(passport.initialize());
