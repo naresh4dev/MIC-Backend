@@ -267,7 +267,7 @@ router.get('/home',(req,res)=>{
   } catch (error) {
     console.error(error);
     console.log("Something Went wrong!");
-    res.json({res:fasle});
+    res.json({res:false});
   }
 
 });
@@ -276,7 +276,9 @@ router.get('/home',(req,res)=>{
 router.post('/cart/:cart_action',(req,res,next)=>{
   if(req.isAuthenticated()) {
     next()
-  } 
+  } else {
+    res.json({res:true, auth : false});
+  }
 },(req,res)=>{
   const request = req.app.locals.db.request();
   if (req.params.cart_action == 'add') {
@@ -335,7 +337,7 @@ router.post('/wishlist/:action',(req,res)=>{
   if(req.params.action == 'add') {
     request.input('item_id',sql.NVarChar,req.body.item_id);
     request.input('wishlist_id', sql.NVarChar,req.body.wishlist_id);
-    request.query('insert into WishlistItems(cart_id,item_id) values(@wishlist_id,@item_id);',(queryErr,result)=>{
+    request.query('insert into WishlistItems(wishlist_id,item_id) values(@wishlist_id,@item_id);',(queryErr,result)=>{
       if(!queryErr) {
         res.json({res:true, action : true});
       } else {
@@ -344,7 +346,7 @@ router.post('/wishlist/:action',(req,res)=>{
     });
   } else if (req.params.action == 'get') {
     request.input('user_id',sql.NVarChar,req.user.id);
-    request.query('select cart.wishlist_id, item.item_id,itd.sale_price,itd.regular_price, itd.prime_price, itd.ministore_min_qty, itd.item_weight, itd.item_stock, itd.ministore_product_bonus,p.product_id ,p.product_name, p.product_tax, p.product_image,p.category from WishlistTable as wishlist join WishlistItems as item join on  wishlist.wishlist_id=item.wishlist_id join items as itd on itd.item_id=item.item_id join product as p on p.product_id=itd.product_id where cart.user_id=@user_id;',(queryErr,result)=>{
+    request.query('select wishlist.wishlist_id, item.item_id,itd.sale_price,itd.regular_price, itd.prime_price, itd.ministore_min_qty, itd.item_weight, itd.item_stock, itd.ministore_product_bonus,p.product_id ,p.product_name, p.product_tax, p.product_image,p.category from WishlistTable as wishlist join WishlistItems as item join on  wishlist.wishlist_id=item.wishlist_id join items as itd on itd.item_id=item.item_id join product as p on p.product_id=itd.product_id where cart.user_id=@user_id;',(queryErr,result)=>{
       if(!queryErr) {
         res.json({res:true, cart : result.recordset, action : true});
       } else {
@@ -370,6 +372,31 @@ router.get('/category',(req,res)=>{
   req.app.locals.db.query('select category_id,category_name from  categories',(queryErr,result)=>{
     res.json({res:true,data:result.recordset});
   });
+});
+
+router.post('/image/:upload_type',(req,res)=>{
+  if (req.params.upload_type == 'single') {
+    req.pipe(req.busboy);
+    let formData = new Map();
+    let bufs = [];
+    req.busboy.on('field',(fieldName,fieldValue)=>{
+      formData.set(fieldName,fieldValue);
+    });
+    req.busboy.on('file',(fileName, file, fileInfo, encoding,mimetype)=>{
+      formData.set('file-type',mimetype);
+      file.on('date',(data)=>{
+        if(data!=null)
+          bufs.push(data);
+      });
+    });
+    req.busboy.on('finish',()=>{
+      res.json({res:true,});
+    });
+  } else if (req.params.upload_type == 'product') {
+
+  } else {
+
+  }
 });
 
 

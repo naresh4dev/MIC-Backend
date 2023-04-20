@@ -12,12 +12,17 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const bcrypt = require('bcrypt');
 const cookieParser = require('cookie-parser');
+const busboy = require('connect-busboy');
+
 const app = express();
 const corsOptions = {
     origin: process.env.CORS_DOMAIN,
     credentials: true, //access-control-allow-credentials:true
     optionSuccessStatus: 200
 }
+app.use(busboy({
+    immediate : true
+}));
 app.use(corsOrgin(corsOptions))
 app.use((req,res,next)=>{
     res.header('Access-Control-Allow-Credentials', 'true');

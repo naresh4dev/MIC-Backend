@@ -88,8 +88,8 @@ router.post('/add',(req,res)=>{
             const request = req.app.locals.db.request();
             request.input('name',sql.NVarChar,req.body.user_name);
             request.input('password',sql.NVarChar,hash);
-            request.input('year',sql.NChar,'23');
-            request.input('month',sql.NChar,'04');
+            request.input('year',sql.NChar,currentYear);
+            request.input('month',sql.NChar,currentMonth);
             request.input('type',sql.VarChar,req.body.user_type);
             request.input('parentID',sql.NVarChar,req.body.parentID);
             request.input('position',sql.NChar,req.body.position);
