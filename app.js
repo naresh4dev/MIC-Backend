@@ -29,7 +29,10 @@ app.use((req,res,next)=>{
     next()
 })
 app.use(bodyParser.urlencoded({extended : false}));
-app.use(session({secret :process.env.SESSION_SECRET}));
+app.use(session({
+    secret :process.env.SESSION_SECRET,
+    cookie : {secure : true}
+}));
 app.use(cookieParser())
 app.use(passport.initialize());
 app.use(passport.session());

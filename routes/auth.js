@@ -24,6 +24,7 @@ router.post('/signin', passport.authenticate('login'),(req,res)=>{
 });
 
 router.post('/prime', passport.authenticate('prime-login'),(req,res)=>{
+    res.header('Access-Control-Allow-Credentials', 'true')
     res.json({res:req.user});
 });
 
