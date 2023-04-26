@@ -12,10 +12,10 @@ router.post('/signin', passport.authenticate('login'),(req,res)=>{
     const request = req.app.locals.db.request();
     
     request.input('user_id',sql.NVarChar,req.user.id);
-    request.query(`select user_id,username, user_email from users where user_id=@user_id`,(queryErr,result)=>{
+    request.query(`select user_id, username, fname,lname,user_email from users where user_id=@user_id`,(queryErr,result)=>{
         if(!queryErr) {
             
-            res.json({res:true, user:{id : req.user.id, type : req.user.type, username : result.recordset[0].username,email : result.recordset[0].user_email }});
+            res.json({res:true, user:{id : req.user.id,fname : result.recordset[0].fname,lname : result.recordset[0].lname ,type : req.user.type, username : result.recordset[0].username,email : result.recordset[0].user_email }});
         } else {
             console.log(queryErr);
             res.json({res:false});
@@ -24,8 +24,16 @@ router.post('/signin', passport.authenticate('login'),(req,res)=>{
 });
 
 router.post('/prime', passport.authenticate('prime-login'),(req,res)=>{
-    res.header('Access-Control-Allow-Credentials', 'true')
-    res.json({res:req.user});
+    res.header('Access-Control-Allow-Credentials', 'true');
+    const request = req.app.locals.db.request();
+    request.input('user_id',sql.NVarChar, req.user.id);
+    request.query('select user_id, user_name, user_email, user_status, user_type from PrimeUsers where user_id=@user_id',(queryErr,result)=>{
+        if(!queryErr) {
+            res.json({res:true, user : {id : result.recordset[0].user_id,user_type :result.recordset[0].user_type, user_name : result.recordset[0].user_name ,type : req.user.type}});
+        } else {
+            res.json({res:false});
+        }
+    });
 });
 
 router.get('/auth',(req,res)=>{
