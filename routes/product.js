@@ -114,7 +114,7 @@ router.get('/update', (req, res) => {
 
 router.get('/', (req, res) => {
     try {
-        if (req.query.category == undefined) {
+        if (req.query.category == undefined && req.query.search==undefined) {
           req.app.locals.db.query('select p.product_id,p.product_name,p.category,p.product_tax,p.product_image,item.item_id,item.item_stock,item.sale_price,item.regular_price,item.prime_price,item.ministore_min_qty,item.ministore_product_bonus,item.item_weight,c.category_name from products as p join items as item  on p.product_id=item.product_id join categories as c on p.category=c.category_id where p.product_status=1 ', (queryErr, result) => {
             if(queryErr) {
               res.json({res:false});
@@ -157,7 +157,7 @@ router.get('/', (req, res) => {
             } 
             
           });
-        } else {
+        } else if (req.query.category != undefined) {
           const request = req.app.locals.db.request();
           request.input('category',sql.NVarChar,`${req.query.category}`);
           request.query(`select p.product_id,p.product_name,p.category,p.product_tax,p.product_image,item.item_id,item.item_stock,item.sale_price,item.regular_price,item.prime_price,item.ministore_min_qty,item.ministore_product_bonus,item.item_weight,c.category_name from products as p join items as item  on p.product_id=item.product_id join categories as c on p.category=c.category_id where p.product_status=1 and p.category=@category`, (queryErr, result) => {
@@ -201,7 +201,53 @@ router.get('/', (req, res) => {
               });
             }
         });
-        } 
+        } else if (req.query.search != undefined) {
+          const request = req.app.locals.db.request();
+          request.input('product_name',sql.NVarChar,`${req.query.search}`);
+          request.query(`select p.product_id,p.product_name,p.category,p.product_tax,p.product_image,item.item_id,item.item_stock,item.sale_price,item.regular_price,item.prime_price,item.ministore_min_qty,item.ministore_product_bonus,item.item_weight,c.category_name from products as p join items as item  on p.product_id=item.product_id join categories as c on p.category=c.category_id where p.product_status=1 and p.product_name like @product_name%`, (queryErr, result) => {
+            if(queryErr) {
+              res.json({res:false});
+              console.log(queryErr);
+            } else {
+              const data = result.recordset;
+
+              const productItemsDict = {};
+
+              // iterate through each element of the given JSON array
+              data.forEach((d) => {
+                const { item_id,sale_price,regular_price,item_weight,ministore_min_qty,ministore_product_bonus, item_stock,prime_price } = d;
+                const {product_id,product_image,product_name,product_tax,category,category_name} = d;
+                // if the product_id is not already present in the productItemsDict
+                if (!productItemsDict[product_id]) {
+                  // create a new array with the item_id as value
+                  productItemsDict[product_id] = {
+                    product_id,
+                    product_image,
+                    product_name,
+                    category,
+                    product_tax,
+                    category_name,
+                    items : []
+                  };
+                }
+
+                // append the item_id to the array corresponding to the product_id in the productItemsDict
+                productItemsDict[product_id].items.push({sale_price,regular_price,item_weight,item_id,item_stock,ministore_min_qty,ministore_product_bonus,prime_price});
+              });
+
+              
+
+              // iterate through the productItemsDict and create a new array of objects
+              
+                res.json({
+                  res: true,
+                  products: Object.values(productItemsDict)
+              });
+            }
+        });
+        } else {
+          res.json({res:false, error_message : 'Invalid Request'});
+        }
         
     } catch (err) {
         console.error(err);

@@ -4,7 +4,7 @@ const { route } = require('./auth');
 const router = require('express').Router();
 const bodyParser = require('body-parser');
 
-router.use(bodyParser.urlencoded(true));
+
 router.get('/',(req,res)=>{
     if (req.query.memberid !='' && req.query.memberid !='undefined' && req.query.memberid !=undefined) 
     {
