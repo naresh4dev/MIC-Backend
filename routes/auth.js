@@ -108,4 +108,46 @@ router.post('/register',(req,res)=>{
 
 });
 
+router.post('/enquiry',(req,res)=>{
+    try {
+        const request = req.app.locals.db.request();
+        request.input('user_name', sql.NVarChar, req.body.user_name);
+        request.input('email', sql.NVarChar, req.body.email);
+        request.input("phone", sql.NVarChar, req.body.phone);
+        request.query("insert into PrimeUsersEnquiry values(@user_name, @email,@phone)",(queryErr,result)=>{
+            if(!queryErr) {
+                res.json({res:true, action : true});
+            } else {
+                console.log(queryErr);
+                res.json({res:true,action : false });
+            }
+        }); 
+    } catch (err) {
+        res.json({res:false});
+        console.log(err);
+    }
+    
+});
+
+router.post('/support',(req,res)=>{
+    try {
+        const request = req.app.locals.db.request();
+        request.input('user_name', sql.NVarChar, req.body.user_name);
+        request.input('email', sql.NVarChar, req.body.email);
+        request.input("subject", sql.NVarChar, req.body.subject);
+        request.input('context', sql.NVarChar, req.body.context);
+        request.query("insert into SupportTable values(@user_name, @email,@subject, @context)",(queryErr,result)=>{
+            if(!queryErr) {
+                res.json({res:true, action : true});
+            } else {
+                console.log(queryErr);
+                res.json({res:true,action : false });
+            }
+        }); 
+    } catch (err) {
+        res.json({res:false});
+        console.log(err);
+    }
+});
+
 module.exports = router;
