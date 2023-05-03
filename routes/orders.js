@@ -7,17 +7,40 @@ const sql = require('mssql');
 
 
 router.post('/createorder',(req,res)=>{
-    razorInstance.orders.create({
-        amount : parseInt(((req.body.total_amount)*100)),
-        currency : 'INR'
-    },(err,data)=>{
-        if (err) {
-            console.log(err);
-            res.json({res:false});
-        } else {
-            res.json({res:true,data:data,key : process.env.RAZORPAY_KEY_ID});
-        }
-    });
+    if (req.query?.order_type=='cod') {
+        const request = req.app.locals.db.request();
+        const now = new Date();
+        const currentMonth = (now.getMonth() + 1).toString().padStart(2, '0');
+        const currentYear = now.getFullYear().toString().slice(-2);
+        request.input('user_id', sql.NVarChar, req.user.id);
+        request.input('month',sql.Char,currentMonth);
+        request.input('year',sql.Char,currentYear);
+        request.input('total_amount',sql.Decimal,req.body.total_amount);
+        request.input('pay_mode',sql.VarChar, 'COD');
+        request.input('pay_status',sql.VarChar,'pending');
+        request.input('order_status',sql.VarChar,'Order Received');
+        request.query('Insert into Orders(ordered_month, ordered_year,user_id,total_amount,payment_status,payment_mode,order_status) values(@month,@year,@user_id,@total_amount,@pay_status,@pay_mode,@order_status)',(queryErr,result)=>{
+            if(!queryErr) {
+                res.json({res:true, action:true});
+            } else {
+                console.log(queryErr)
+                res.json({res:true, action:false});
+            }
+        });
+    } else {
+        razorInstance.orders.create({
+            amount : parseInt(((req.body.total_amount)*100)),
+            currency : 'INR'
+        },(err,data)=>{
+            if (err) {
+                console.log(err);
+                res.json({res:false});
+            } else {
+                res.json({res:true,data:data,key : process.env.RAZORPAY_KEY_ID});
+            }
+        });
+    }
+    
 });
 
 router.post('/all',(req,res)=>{
