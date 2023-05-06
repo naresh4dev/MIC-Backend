@@ -6,7 +6,6 @@ const bodyParser = require('body-parser');
 
 
 router.get('/',(req,res)=>{
-    console.log(req.query.memberid);
     if (req.query.memberid !='' && req.query.memberid !='undefined' && req.query.memberid !=undefined) 
     {
         try {
@@ -14,7 +13,7 @@ router.get('/',(req,res)=>{
             request.input('rootName',sql.Char,"tree");
             const query = `select MLM.MemberID, MLM.ParentID, MLM.LeftChildID, MLM.RightChildID, MLM.LeftReferralPoints, MLM.RightReferralPoints, MLM.TotalReferralPoints,PU.user_name,PU.user_type, PU.user_status  from BinaryTreeMLM as MLM join PrimeUsers as PU on MLM.MemberID=PU.user_id;`
             request.query(query,(queryErr,result)=>{
-                if(!queryErr) {
+                if(!queryErr ) {
                     const json = {tree : result.recordset};
                     let orgChartJson = {};
     
@@ -141,6 +140,24 @@ router.get('/update',(req,res)=>{
     } 
     insertUsersToDB(null,null,1);
 })
+
+
+router.get('/wallet',(req,res,next)=>{
+    if(req.isAuthenticated())
+        next()
+    else 
+        res.sendStatus(403);
+},(req,reqs)=>{
+    const request = req.app.locals.db.request();
+    request.input('user_id', sq.NChar,req.user.id);
+    request.query("Select * from Wallet where user_id=@user_id",(queryErr,result)=>{
+        if(!queryErr) {
+            res.json({res:true, wallet_balance : result.recordset[0].wallet_balance, discount_coupon : result.recordset[0].discount_coupon});
+        } else {
+            res.json({res:false});
+        }
+    });
+});
 
 
 module.exports = router;

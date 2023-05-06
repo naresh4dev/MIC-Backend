@@ -27,7 +27,7 @@ router.post('/createorder',(req,res)=>{
                 res.json({res:true, action:false});
             }
         });
-    } else {
+    } else if (req.query?.order_type=='online') {
         razorInstance.orders.create({
             amount : parseInt(((req.body.total_amount)*100)),
             currency : 'INR'
@@ -39,6 +39,8 @@ router.post('/createorder',(req,res)=>{
                 res.json({res:true,data:data,key : process.env.RAZORPAY_KEY_ID});
             }
         });
+    } else {
+        res.json({res:true, action:false});
     }
     
 });

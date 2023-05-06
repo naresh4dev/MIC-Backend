@@ -4,6 +4,7 @@ const auth_router = require('./routes/auth');
 const product_router = require('./routes/product');
 const order_router = require('./routes/orders');
 const mlm_router = require('./routes/mlm');
+const admin_router = require('./routes/admin');
 const sql = require('mssql');
 const bodyParser = require('body-parser');
 const corsOrgin = require('cors')
@@ -33,7 +34,7 @@ app.use(session({
     secret :process.env.SESSION_SECRET,
     cookie : {
         maxAge: 24 * 60 * 60 * 1000,
-        
+        httpOnly : false
     },
     resave: false,
     saveUninitialized: false,
@@ -53,6 +54,7 @@ app.use('/api/auth',auth_router);
 app.use('/api/products',product_router);
 app.use('/api/orders',order_router);
 app.use('/api/tree/',mlm_router);
+app.use('/api/admin/',admin_router);
 
 passport.serializeUser(function(user, done) {
     done(null, user);
