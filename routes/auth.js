@@ -31,7 +31,7 @@ router.post('/prime', passport.authenticate('prime-login'),(req,res)=>{
     request.query('select user_id, user_name, user_email, user_status, user_type from PrimeUsers where user_id=@user_id',(queryErr,result)=>{
         if(!queryErr) {
             
-            res.setHeader('set-cookie','dnsdj')
+            
             res.json({res:true, user : {id : result.recordset[0].user_id,user_type :result.recordset[0].user_type, user_name : result.recordset[0].user_name ,type : req.user.type}});
         } else {
             res.json({res:false});
