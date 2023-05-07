@@ -112,8 +112,8 @@ router.post('/products/upload/:type',(req,res)=>{
 });
 
 
-router.get('/orders/:type',(req,res)=>{
-    if(req.params.type == 'get_all'){ 
+router.get('/orders/get/:type',(req,res)=>{
+    if(req.params.type == 'all'){ 
         req.app.locals.db.query('select * from Orders',(queryErr,result)=>{
             if(!queryErr) {
                 res.json({res:true, orders:result.recordset});
@@ -122,7 +122,7 @@ router.get('/orders/:type',(req,res)=>{
                 res.json({res:false});
             }
         });
-    } else if (req.params.type =='get_one') {
+    } else if (req.params.type =='one') {
         const request = req.app.locals.db.request();
         request.input('order_id',sql.NVarChar,req.query.order_id);
         request.query('select * from Orders where order_id=@order_id',(queryErr,result)=>{
@@ -136,5 +136,8 @@ router.get('/orders/:type',(req,res)=>{
     }
 });
 
+router.post('/orders',(req,res)=>{
+
+});
 
 module.exports = router;

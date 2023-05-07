@@ -3,7 +3,7 @@ const sql = require('mssql');
 const { route } = require('./auth');
 const router = require('express').Router();
 const bodyParser = require('body-parser');
-
+const bcrypt = require('bcrypt');
 
 router.get('/',(req,res)=>{
     if (req.query.memberid !='' && req.query.memberid !='undefined' && req.query.memberid !=undefined) 
@@ -39,10 +39,10 @@ router.get('/',(req,res)=>{
                         children.forEach(child => {
     
                         let   childNode = { id: child.MemberID, title:child.MemberID ,newMember : false , parent_id : child.ParentID,name : child.user_name ,left_child_id : child.LeftChildID, right_child_id : child.RightChildID, left_referral_points:child.LeftReferralPoints, right_referral_points:child.RightReferralPoints, total_referral_points:child.TotalReferralPoints, user_type : child.user_type, user_status : child.user_status ,children :[]  };
-                            if(child.LeftChildID==null && child.RightChildID==null ) {
+                            if(child.LeftChildID==null && child.RightChildID==null && child.user_status) {
                                 childNode['children'].push({name:'L', title : "New Member" , parentID : child.MemberID, newMember : true});
                                 childNode['children'].push({name:'R',title : "New Member" ,parentID:child.MemberID,newMember : true});
-                            } else if ((child.LeftChildID==null || child.RightChildID==null)) {
+                            } else if ((child.LeftChildID==null || child.RightChildID==null) && child.user_status) {
                                 const position = child.LeftChildID?'R' :'L';
                                 childNode['children'].push({name:position,title : "New Member",status:"new",parentID:child.MemberID,newMember : true});   
                             }
@@ -94,12 +94,14 @@ router.post('/add',(req,res)=>{
             request.input('parentID',sql.NVarChar,req.body.parentID);
             request.input('position',sql.NChar,req.body.position);
             request.input('plan_id',sql.NVarChar,req.body.plan_id);
-            request.query(" Insert into PrimeUsers(user_name,user_parent_id,registered_month,registered_year,user_type,user_password,user_position) values (@name,@parentID,@month,@year,@type,@password,@position);",(queryErr,result)=>{
+            request.input('is_active',sql.Bit,0);
+            request.input('sponsor_id',sql.VarChar,req.body.sponsor_id);
+            request.query(" Insert into PrimeUsers(user_name,user_parent_id,registered_month,registered_year,user_type,user_password,user_position,user_status,user_sponsor_id) values (@name,@parentID,@month,@year,@type,@password,@position,@is_active,@sponsor_id);",(queryErr,result)=>{
                 if(!queryErr) {
-                    res.json({res:true});
+                    res.json({res:true, action : true});
                 } else {
                     console.log(queryErr);
-                    res.json({res:false});
+                    res.json({res:true, action : false});
                 }
             });  
         }
