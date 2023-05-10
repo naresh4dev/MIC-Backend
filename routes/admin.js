@@ -140,4 +140,40 @@ router.post('/orders',(req,res)=>{
 
 });
 
+
+router.get('/users',(req,res)=>{
+    console.log(req.query.type);
+    const request = req.app.locals.db.request();
+    var query='';
+    if (req.query.type == 'normal') {
+        query = "select * from users"
+    } else if (req.query.type == 'prime') {
+        query = "select * from PrimeUsers"
+    } else {
+        return res.json({res:false, msg : "Invalid Request type"});
+    }
+    request.query(query,(queryErr,result)=>{
+        if(queryErr){
+            console.log(queryErr);
+            return res.json({res:false , msg : "Internal Query Error"});
+        } 
+         
+        res.json({res:true, users : result.recordset});
+    });
+});
+
+router.post('/users/update',(req,res)=>{
+    
+    const request = req.app.locals.db.request();
+    request.input('user_id',sql.NVarChar,req.body.user_id);
+    request.input('status',sql.Bit,parseInt(req.body.status));
+    request.query('update PrimeUsers set user_status=@status where user_id=@user_id',(queryErr)=>{
+        if(queryErr){
+            console.log(queryErr);
+            return res.json({res:false, msg : "Internal Query Error"});
+        }
+        res.json({res:true});
+    })
+});
+
 module.exports = router;

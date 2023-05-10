@@ -319,17 +319,22 @@ router.get('/home',(req,res)=>{
 });
 
 
+
 router.post('/cart/:cart_action',(req,res,next)=>{
   if(req.isAuthenticated()) {
-    next()
+    next();
   } else {
+
     res.json({res:true, auth : false});
   }
 },(req,res)=>{
+  console.log(req.body);
   const request = req.app.locals.db.request();
   if (req.params.cart_action == 'add') {
+    
     request.input('item_id',sql.NVarChar,req.body.item_id);
     request.input('user_id',sql.NVarChar,req.user.id);
+    
     request.query('declare @cart_id NVARCHAR(50); set @cart_id=(select cart_id from CartTable where user_id=@user_id); insert into CartItems(cart_id,item_id) values(@cart_id,@item_id);',(queryErr,result)=>{
       if(!queryErr) {
         res.json({res:true, action : true});
@@ -339,7 +344,7 @@ router.post('/cart/:cart_action',(req,res,next)=>{
       }
     });
   } else if (req.params.cart_action == 'get') {
-    console.log(req.user);
+    
     request.input('user_id',sql.NVarChar,req.user.id);
     request.query('select cart.cart_id, item.item_id, item.quantity,itd.sale_price,itd.regular_price, itd.prime_price, itd.ministore_min_qty, itd.item_weight, itd.item_stock, itd.ministore_product_bonus,p.product_id ,p.product_name, p.product_tax, p.product_image,p.category from CartTable as cart join CartItems as item on  cart.cart_id=item.cart_id join items as itd on itd.item_id=item.item_id join products as p on p.product_id=itd.product_id where cart.user_id=@user_id;',(queryErr,result)=>{
       if(!queryErr) {
@@ -363,6 +368,7 @@ router.post('/cart/:cart_action',(req,res,next)=>{
     });
 
   } else if (req.params.cart_action == 'remove') {
+    console.log("Rm")
     request.input('item_id',sql.NVarChar,req.body.item_id);
     request.input('user_id',sql.NVarChar,req.user.id);
     request.query('delete item  from CartItems as item join CartTable as cart on item.cart_id=cart.cart_id where cart.user_id=@user_id and item.item_id=@item_id',(queryErr,result)=>{
@@ -448,123 +454,4 @@ router.post('/image/:upload_type',(req,res)=>{
 
 module.exports = router;
 
-const result = [
-    {
-      "keys": [
-        "a",
-        "b"
-      ],
-      "length": 2,
-      "_fields": [
-        {
-          "identity": {
-            "low": 0,
-            "high": 0
-          },
-          "labels": [
-            "Person"
-          ],
-          "properties": {
-            "name": "naresh"
-          },
-          "elementId": "4:f7233c03-1852-4202-b7d5-1cbd593b4855:0"
-        },
-        {
-          "identity": {
-            "low": 1,
-            "high": 0
-          },
-          "labels": [
-            "Person"
-          ],
-          "properties": {
-            "name": "ayush"
-          },
-          "elementId": "4:f7233c03-1852-4202-b7d5-1cbd593b4855:1"
-        }
-      ],
-      "_fieldLookup": {
-        "a": 0,
-        "b": 1
-      }
-    },
-    {
-      "keys": [
-        "a",
-        "b"
-      ],
-      "length": 2,
-      "_fields": [
-        {
-          "identity": {
-            "low": 0,
-            "high": 0
-          },
-          "labels": [
-            "Person"
-          ],
-          "properties": {
-            "name": "naresh"
-          },
-          "elementId": "4:f7233c03-1852-4202-b7d5-1cbd593b4855:0"
-        },
-        {
-          "identity": {
-            "low": 2,
-            "high": 0
-          },
-          "labels": [
-            "Person"
-          ],
-          "properties": {
-            "name": "neil"
-          },
-          "elementId": "4:f7233c03-1852-4202-b7d5-1cbd593b4855:2"
-        }
-      ],
-      "_fieldLookup": {
-        "a": 0,
-        "b": 1
-      }
-    },
-    {
-      "keys": [
-        "a",
-        "b"
-      ],
-      "length": 2,
-      "_fields": [
-        {
-          "identity": {
-            "low": 1,
-            "high": 0
-          },
-          "labels": [
-            "Person"
-          ],
-          "properties": {
-            "name": "ayush"
-          },
-          "elementId": "4:f7233c03-1852-4202-b7d5-1cbd593b4855:1"
-        },
-        {
-          "identity": {
-            "low": 3,
-            "high": 0
-          },
-          "labels": [
-            "Person"
-          ],
-          "properties": {
-            "name": "ash"
-          },
-          "elementId": "4:f7233c03-1852-4202-b7d5-1cbd593b4855:3"
-        }
-      ],
-      "_fieldLookup": {
-        "a": 0,
-        "b": 1
-      }
-    }
-]
 
