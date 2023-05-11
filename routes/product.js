@@ -442,6 +442,7 @@ router.post('/image/:upload_type',(req,res)=>{
       });
     });
     req.busboy.on('finish',()=>{
+      
       res.json({res:true,});
     });
   } else if (req.params.upload_type == 'product') {

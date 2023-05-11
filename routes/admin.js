@@ -3,6 +3,7 @@ const csv = require('csv-parser');
 const router = require('express').Router();
 const busboy = require('connect-busboy');
 const sql = require('mssql');
+const { error } = require('neo4j-driver');
 
 router.post('/products/upload/:type',(req,res)=>{
     if (req.params.type == 'bulk') {
@@ -106,15 +107,42 @@ router.post('/products/upload/:type',(req,res)=>{
                         }
                     });
         });
+    } else if (req.params.type == 'status') {
+
+        const request = req.app.locals.db.request();
+        request.input('status',sql.Bit, parseInt(req.body.status));
+        request.input('id', sql.NVarChar,req.body.product_id);
+        request.query('update products set product_status=@status where product_id=@id',(queryErr)=>{
+            if(queryErr) {
+                console.log(queryErr);
+                return res.json({res:true, action : false});
+            }
+            res.json({res:true, action : true});
+        });
     } else {
         res.json({res: true, action : false});
+    }
+});
+
+router.get('/products/:mode',(req,res)=>{
+    const request = req.app.locals.db.request();
+    if(req.params.mode == 'get_all'){ 
+        const productQuery = `select distinct p.id,p.product_id,p.product_status,p.product_name,c.category_name,(select count(item_id) from items where product_id=p.product_id group by product_id) as item_count from products as p join categories as c on p.category=c.category_id`;
+        request.query(productQuery,(queryErr,result)=>{
+            if(!queryErr){
+                res.json({res:true, products : result.recordset});
+            } else {
+                console.log(queryErr);
+                res.json({res:true});
+            }
+        });
     }
 });
 
 
 router.get('/orders/get/:type',(req,res)=>{
     if(req.params.type == 'all'){ 
-        req.app.locals.db.query('select * from Orders',(queryErr,result)=>{
+        req.app.locals.db.query('select distinct o.id,o.order_id, o.total_amount, o.payment_mode, o.payment_status, o.order_status, o.user_id ,(select count(item_id) from OrderItems where order_id=o.order_id group by order_id) as item_count from Orders as o join OrderItems as items on o.order_id=items.order_id',(queryErr,result)=>{
             if(!queryErr) {
                 res.json({res:true, orders:result.recordset});
             } else {
@@ -125,7 +153,7 @@ router.get('/orders/get/:type',(req,res)=>{
     } else if (req.params.type =='one') {
         const request = req.app.locals.db.request();
         request.input('order_id',sql.NVarChar,req.query.order_id);
-        request.query('select * from Orders where order_id=@order_id',(queryErr,result)=>{
+        request.query('select distinct o.order_id, o.total_amount, o.payment_mode, o.payment_status, o.order_status, o.user_id ,(select count(item_id) from OrderItems where order_id=o.order_id group by order_id) as item_count from Orders as o join OrderItems as items on o.order_id=items.order_id where o.order_id=@order_id',(queryErr,result)=>{
             if(!queryErr) {
                 res.json({res:true, order:result.recordset[0]});
             } else {
@@ -136,8 +164,34 @@ router.get('/orders/get/:type',(req,res)=>{
     }
 });
 
-router.post('/orders',(req,res)=>{
 
+router.post('/orders/status',(req,res)=>{
+    const request = req.app.locals.db.request();
+    if(req.query.type==="order_status") {
+        request.input('status',sql.NVarChar,req.body.order_status);
+        request.input('order_id',sql.NVarChar,req.body.order_id);
+        request.query('update Orders set order_status=@status where order_id=@order_id',(queryErr)=>{
+            if(!queryErr) {
+                res.json({res:true, action : true});
+             } else {
+                console.log(queryErr);
+                res.json({res:true, action : false});
+             }
+        });
+    } else if ( req.query.type === "payment_status") {
+        request.input('pay_status',sql.NVarChar,'paid');
+        request.input('order_id',sql.NVarChar,req.body.order_id);
+        request.query('update Orders set payment_status=@pay_status where order_id=@order_id',(queryErr)=>{
+            if(!queryErr) {
+                res.json({res:true, action : true});
+            } else {
+                console.log(queryErr);
+                res.json({res:true, action : false});
+            }
+        });
+    } else {
+
+    }
 });
 
 
@@ -173,7 +227,9 @@ router.post('/users/update',(req,res)=>{
             return res.json({res:false, msg : "Internal Query Error"});
         }
         res.json({res:true});
-    })
+    });
 });
 
 module.exports = router;
+
+

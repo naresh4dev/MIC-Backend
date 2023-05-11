@@ -77,6 +77,36 @@ router.get('/points/value',(req,res)=>{
 });
 
 router.post('/add',(req,res)=>{
+    function updateReferralPoints(memberID, parentID) {
+        // Update the referral points for the parent
+        const request = req.app.locals.db.request();
+        request.input('member_id',sql.NVarChar, memberID);
+        request.input('parent_id',sql.NVarChar, parentID);
+        const query = ```SET NOCOUNT ON;
+        DECLARE @NewMemberID NVARCHAR(50) = @member_id;
+        DECLARE @NewMemberParentID NVARCHAR(50) = @parent_id;
+        DECLARE @AncestorID NVARCHAR(50) = @NewMemberParentID;
+        DECLARE @TempMemberID NVARCHAR(50) = @NewMemberID;
+        DECLARE @ReferralPoints INT = (select p.plan_points from PrimePackagePlan as p join PrimeUsers as users on p.plan_id=users.prime_plan_id where users.user_id=@NewMemberID);
+        UPDATE MLM
+        SET MLM.HasAnyChildReferred=CASE WHEN MLM.LeftChildID=@NewMemberParentID OR MLM.RightChildID=@NewMemberParentID THEN 1 ELSE MLM.HasAnyChildReferred END
+        FROM BinaryTreeMLM AS MLM 
+        JOIN PrimeUsers as PU ON MLM.MemberID=PU.user_id
+        WHERE MLM.MemberID=(Select ParentID FROM BinaryTreeMLM WHERE MemberID = @NewMemberParentID);
+        -- Update Referral points for all users
+        WHILE @AncestorID is not NULL
+        BEGIN 
+            UPDATE BinaryTreeMLM
+            SET 
+            LeftReferralPoints = CASE WHEN LeftChildID=@TempMemberID THEN LeftReferralPoints+@ReferralPoints ELSE LeftReferralPoints END,
+            RightReferralPoints = CASE WHEN RightChildID=@TempMemberID  THEN RightReferralPoints+@ReferralPoints ELSE RightReferralPoints END,
+            TotalReferralPoints = CASE WHEN LeftChildID=@TempMemberID or RightChildID=@TempMemberID  THEN TotalReferralPoints+@ReferralPoints ELSE TotalReferralPoints END
+            WHERE MemberID=@AncestorID;
+            SET @TempMemberID = @AncestorID;
+            SET @AncestorID=(Select ParentID from BinaryTreeMLM where MemberID=@AncestorID);
+        END```;
+        request.query(query);
+    }
     bcrypt.hash(req.body.password, 10, (err,hash)=>{ 
         if(err) {
             console.log(err);
