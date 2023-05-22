@@ -115,19 +115,17 @@ router.get('/update', (req, res) => {
 router.get('/', (req, res) => {
     try {
         if (req.query.category == undefined && req.query.search==undefined) {
-          req.app.locals.db.query('select p.product_id,p.product_name,p.category,p.product_tax,p.product_image,item.item_id,item.item_stock,item.sale_price,item.regular_price,item.prime_price,item.ministore_min_qty,item.ministore_product_bonus,item.item_weight,c.category_name from products as p join items as item  on p.product_id=item.product_id join categories as c on p.category=c.category_id where p.product_status=1 ', (queryErr, result) => {
+          req.app.locals.db.query('select p.product_id,p.product_name,p.category,p.subcategory,p.product_tax,p.product_image,item.item_id,item.item_stock,item.sale_price,item.regular_price,item.prime_price,item.ministore_min_qty,item.ministore_product_bonus,item.item_weight from products as p join items as item  on p.product_id=item.product_id where p.product_status=1 ', (queryErr, result) => {
             if(queryErr) {
               res.json({res:false});
               console.log(queryErr);
             } else {
               const data = result.recordset;
-
               const productItemsDict = {};
-
               // iterate through each element of the given JSON array
               data.forEach((d) => {
                 const { item_id,sale_price,regular_price,item_weight,ministore_min_qty,ministore_product_bonus, item_stock,prime_price } = d;
-                const {product_id,product_image,product_name,product_tax,category,category_name} = d;
+                const {product_id,product_image,product_name,product_tax,category,subcategory} = d;
                 // if the product_id is not already present in the productItemsDict
                 if (!productItemsDict[product_id]) {
                   // create a new array with the item_id as value
@@ -137,7 +135,7 @@ router.get('/', (req, res) => {
                     product_name,
                     category,
                     product_tax,
-                    category_name,
+                    subcategory,
                     items : []
                   };
                 }
@@ -313,7 +311,7 @@ router.get('/home',(req,res)=>{
   } catch (error) {
     console.error(error);
     console.log("Something Went wrong!");
-    res.json({res:false});
+    res.json({res:false, error_msg : "Interal Server Error"});
   }
 
 });
@@ -348,7 +346,6 @@ router.post('/cart/:cart_action',(req,res,next)=>{
     request.input('user_id',sql.NVarChar,req.user.id);
     request.query('select cart.cart_id, item.item_id, item.quantity,itd.sale_price,itd.regular_price, itd.prime_price, itd.ministore_min_qty, itd.item_weight, itd.item_stock, itd.ministore_product_bonus,p.product_id ,p.product_name, p.product_tax, p.product_image,p.category from CartTable as cart join CartItems as item on  cart.cart_id=item.cart_id join items as itd on itd.item_id=item.item_id join products as p on p.product_id=itd.product_id where cart.user_id=@user_id;',(queryErr,result)=>{
       if(!queryErr) {
-        
         res.json({res:true, cart : result.recordset, action : true});
       } else {
         console.log(queryErr);

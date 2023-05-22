@@ -175,11 +175,11 @@ router.get('/update',(req,res)=>{
 
 
 router.get('/wallet',(req,res,next)=>{
-    if(req.isAuthenticated())
+    if(req.isAuthenticated() && req.user.type =='Prime')
         next()
     else 
         res.sendStatus(403);
-},(req,reqs)=>{
+},(req,res)=>{
     const request = req.app.locals.db.request();
     request.input('user_id', sq.NChar,req.user.id);
     request.query("Select * from Wallet where user_id=@user_id",(queryErr,result)=>{

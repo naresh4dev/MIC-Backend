@@ -14,6 +14,9 @@ const LocalStrategy = require('passport-local').Strategy;
 const bcrypt = require('bcrypt');
 const cookieParser = require('cookie-parser');
 const busboy = require('connect-busboy');
+const {SendOTP} = require('./connections/send-sms');
+
+const IsNumber = require('./utility/checkForNumber');
 
 const app = express();
 const corsOptions = {
@@ -51,8 +54,8 @@ function addUserToRequest(req, res, next) {
 }
 app.use(addUserToRequest);
 app.use('/api/auth',auth_router);
-app.use('/api/products',product_router);
-app.use('/api/orders',order_router);
+app.use('/api/products/',product_router);
+app.use('/api/orders/',order_router);
 app.use('/api/tree/',mlm_router);
 app.use('/api/admin/',admin_router);
 
@@ -148,8 +151,15 @@ const config = {
     server :  process.env.SQL_DB_HOST,
     options : {
         encrypt : true,
-        trustServerCertificate : true
-    }
+        trustServerCertificate : true,
+        requestTimeout: 60000,
+    },
+    pool : {
+        max : 30,
+        min : 1,
+        idleTimeoutMillis : 30000,
+    },
+    
 }
 const appPool = new sql.ConnectionPool(config)
 
@@ -162,6 +172,27 @@ appPool.connect().then(pool =>{
 
 });
 
+
+
+app.post('/api/sendotp', async (req,res)=>{ 
+    try {
+        const number = parseInt(req.body.number);
+        if (!IsNumber(number)) {
+            return res.json({res : false, error_msg : "Invalid Mobile Number"});
+        }
+        const result =  await SendOTP({Number : req.body.number});
+        if (result.success) {
+            return res.json({res:true, success : true, sms_id : result.msg_id});
+        } else {
+            return res.json({res:true, success : false, error_msg : "Unable to process Msg Request" });
+        }
+        
+    } catch (err) {
+        console.log(err)
+        res.json({res : false, error_msg : "Internal Server Error"});
+    }
+    
+});
 
 app.listen(process.env.PORT,(err)=>{
     if(!err)
