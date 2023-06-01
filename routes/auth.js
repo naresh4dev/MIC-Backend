@@ -56,10 +56,11 @@ router.post('/',(req,res)=>{
                 }
             });
         } else {
-            request.query('select user_id, user_name, user_email, user_status, user_type from Users where user_id=@user_id',(queryErr,result)=>{
+            request.query('select user_id, username, user_email from users where user_id=@user_id',(queryErr,result)=>{
                 if(!queryErr) {
-                    res.json({res:true, user : {id : result.recordset[0].user_id,user_type :result.recordset[0].user_type, user_name : result.recordset[0].user_name, type:req.user.type}})
+                    res.json({res:true, user : {id : result.recordset[0].user_id, user_name : result.recordset[0].username, type:req.user.type}})
                 } else {
+                    console.log(queryErr);
                     res.json({res:false});
                 }
             });

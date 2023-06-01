@@ -115,7 +115,7 @@ router.get('/update', (req, res) => {
 router.get('/', (req, res) => {
     try {
         if (req.query.category == undefined && req.query.search==undefined) {
-          req.app.locals.db.query('select p.product_id,p.product_name,p.category,p.subcategory,p.product_tax,p.product_image,item.item_id,item.item_stock,item.sale_price,item.regular_price,item.prime_price,item.ministore_min_qty,item.ministore_product_bonus,item.item_weight from products as p join items as item  on p.product_id=item.product_id where p.product_status=1 ', (queryErr, result) => {
+          req.app.locals.db.query('select p.id,p.product_id,p.product_name,p.category,p.subcategory,p.product_tax,p.product_image,item.item_id,item.item_stock,item.sale_price,item.regular_price,item.prime_price,item.ministore_min_qty,item.ministore_product_bonus,item.item_weight from products as p join items as item  on p.product_id=item.product_id where p.product_status=1 ', (queryErr, result) => {
             if(queryErr) {
               res.json({res:false});
               console.log(queryErr);
@@ -125,7 +125,7 @@ router.get('/', (req, res) => {
               // iterate through each element of the given JSON array
               data.forEach((d) => {
                 const { item_id,sale_price,regular_price,item_weight,ministore_min_qty,ministore_product_bonus, item_stock,prime_price } = d;
-                const {product_id,product_image,product_name,product_tax,category,subcategory} = d;
+                const {product_id,product_image,product_name,product_tax,category,subcategory,id} = d;
                 // if the product_id is not already present in the productItemsDict
                 if (!productItemsDict[product_id]) {
                   // create a new array with the item_id as value
@@ -136,6 +136,7 @@ router.get('/', (req, res) => {
                     category,
                     product_tax,
                     subcategory,
+                    id,
                     items : []
                   };
                 }

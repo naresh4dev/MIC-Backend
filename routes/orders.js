@@ -92,7 +92,7 @@ router.post('/payment/:status',(req,res)=>{
     }
 });
 
-router.get('/get_one',(req,res)=>{
+router.post('/get_one',(req,res)=>{
     const request = req.app.locals.db.request();
     request.input('order_id',sql.NVarChar, req.body.order_id);
 
@@ -105,6 +105,7 @@ router.get('/get_one',(req,res)=>{
             res.json({res:false});
         }
     });
-})
+});
+
 
 module.exports = router;

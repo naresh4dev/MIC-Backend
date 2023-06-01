@@ -25,7 +25,7 @@ const corsOptions = {
     optionSuccessStatus: 200
 }
 app.use(busboy({
-    immediate : true
+    immediate : false
 }));
 app.use(corsOrgin(corsOptions))
 app.use((req,res,next)=>{

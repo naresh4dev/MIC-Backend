@@ -1,29 +1,31 @@
 require('dotenv').config();
 const csv = require('csv-parser');
 const router = require('express').Router();
-const busboy = require('connect-busboy');
+const busboy = require('busboy');
+
 const sql = require('mssql');
 const sqlConnect = require('../connections/sql-connect');
 
-
-router.post('/products/upload/:type', (req, res) => {
+router.post('/products/upload/:type', async (req, res) => {
     if (req.params.type == 'bulk') {
-        req.pipe(req.busboy);
-       
-   
+        try {
+     
+        const productMap = new Set();
+        const getExistingProductName = await req.app.locals.db.query('Select product_name from products');
+        getExistingProductName.recordset.map((product)=>productMap.add(product.product_name));
+        
         req.busboy.on('file', async (fieldName, file, fileName, encoding, mimetype) => {
             try {
                 // if (mimetype != 'text/csv') {
-                //     return res.json({res:true, action: false, msg : "Invalid file type. Must be CSV"});
+                //     return res.json({res:true, action: false, error_msg : "Invalid file type. Must be CSV"});
                 // }
+                console.log('Here');
                 
-                const productMap = new Set();
                 file.pipe(csv())
                     .on('data', async (data) => {
                         try {
-                            const transaction = new sql.Transaction(req.app.locals.db);
-                            await transaction.begin();
-                            const request = new sql.Request(transaction);
+                            
+                            const request = req.app.locals.db.request();
                             request.input('product_name', sql.NVarChar, data.name);
                             request.input('category', sql.NVarChar, data.category)
                             request.input('description', sql.NVarChar, data.description);
@@ -70,41 +72,32 @@ router.post('/products/upload/:type', (req, res) => {
                                     // Store the product ID in the map
                                   }
                             }
-                            
-                            
                             const itemQuery = `INSERT INTO items (sale_price, regular_price, prime_price, ministore_min_qty, ministore_product_bonus, item_weight, item_stock, product_id) 
                                                  VALUES (@sale_price, @regular_price, @prime_price, @mqty, @ministore_bonus, @weight, @item_stock,(select product_id from products where product_name=@product_name));
                                             `;
                             await request.query(itemQuery);
-
-                            await transaction.commit();
-                            
-                        
-                           
                         } catch (err) {
                             
                             console.error(err);
                         }
 
-                    }).on('end', async ()=>{
-                        // try {
-                        //     await transaction.commit();
-                        // } catch(error) {
-                        //     console.error(error);
-                        //     await transaction.rollback();
-                        // } finally {
-                        //     console.log("Uploaded successfully");
-                           
-                        // }
-                        console.log('Uploaded Successfully');
                     })
                     
 
             } catch (error) {
+                
                 console.error(error);
+                res.status(500).json({
+                    res: false,
+                    action: false,
+                    error_msg: 'Internal Server Error'
+                  });
             }
 
         });
+        req.busboy.on('error', (err) => {
+            console.error(err);
+          });
         req.busboy.on("finish", () => {
             
             res.json({
@@ -113,20 +106,29 @@ router.post('/products/upload/:type', (req, res) => {
                 msg: 'Items Uploaded Successfully'
             });
         });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                res: false,
+                action: false,
+                error_msg: 'Internal Server Error'
+              });
+        }
+        req.pipe(req.busboy);
     } else if (req.params.type == 'product') {
         req.pipe(req.busboy);
-        const formData = new Map();
+        const formData = new FormData();
         req.busboy.on('field', (fieldName, fieldValue) => {
-            formData.set(fieldName, fieldValue);
+            formData.append(fieldName, fieldValue);
         });
         req.busboy.on('finish', async () => {
-            
-            request.input('name', sql.NVarChar, formData.name);
-            request.input('category', sql.NVarChar, formData.category_name);
-            request.input('sub_cat',sql.NVarChar, formData.sub_category);
-            request.input('description', sql.NVarChar, formData.description);
-            request.input('product_tax', sql.Decimal, formData.product_tax);
-            request.input('img', sql.NVarChar, formData.image_id);
+            const request = req.app.locals.db.request();
+            request.input('name', sql.NVarChar, formData.get('name'));
+            request.input('category', sql.NVarChar, formData.get('category_name'));
+            request.input('sub_cat',sql.NVarChar, formData.get('sub_category'));
+            request.input('description', sql.NVarChar, formData.get('description'));
+            request.input('product_tax', sql.Decimal, formData.get('product_tax'));
+            request.input('img', sql.NVarChar, formData.get('image_id'));
             const productQuery2 = `Insert Into products(product_name,category,product_description,product_tax,product_image,subcategory)
                                     values(@name,@category,@description,@product_tax,@img,@sub_cat); `;
             request.query(productQuery2, (queryErr) => {
@@ -139,13 +141,14 @@ router.post('/products/upload/:type', (req, res) => {
                     console.log(queryErr);
                     res.json({
                         res: true,
-                        action: false
+                        action: false,
+                        error_msg : 'Internal Server Error'
                     });
                 }
             });
 
         });
-    } else if (req.params.type == 'item') {
+    } else if (req.params.type == 'item_new') {
         req.pipe(req.busboy);
         const formData = new Map();
         req.busboy.on('field', (fieldName, fieldValue) => {
@@ -195,6 +198,18 @@ router.post('/products/upload/:type', (req, res) => {
                 action: true
             });
         });
+    } else if (req.params.type =='item_update') {
+
+    } else if (req.params.type == 'item_delete'){
+        const request = req.app.locals.db.request();
+        request.input('id', sql.NVarChar, req.body.item_id);
+        request.query('update set item items where item_id=@id', (queryErr) => {
+            if (queryErr) {
+
+            } else {
+
+            }
+        });
     } else {
         res.json({
             res: true,
@@ -206,7 +221,7 @@ router.post('/products/upload/:type', (req, res) => {
 router.get('/products/:mode', (req, res) => {
     const request = req.app.locals.db.request();
     if (req.params.mode == 'get_all') {
-        const productQuery = `select distinct p.id,p.product_id,p.product_status,p.product_name,c.category_name,(select count(item_id) from items where product_id=p.product_id group by product_id) as item_count from products as p join categories as c on p.category=c.category_id`;
+        const productQuery = `select distinct p.id,p.product_id,p.product_status,p.product_name,p.category,p.subcategory,(select count(item_id) from items where product_id=p.product_id group by product_id) as item_count from products as p`;
         request.query(productQuery, (queryErr, result) => {
             if (!queryErr) {
                 res.json({
@@ -276,7 +291,6 @@ router.get('/orders/get/:type', (req, res) => {
     }
 });
 
-
 router.post('/orders/status', (req, res) => {
     const request = req.app.locals.db.request();
     if (req.query.type === "order_status") {
@@ -317,7 +331,6 @@ router.post('/orders/status', (req, res) => {
 
     }
 });
-
 
 router.get('/users', (req, res) => {
     console.log(req.query.type);
@@ -456,7 +469,6 @@ router.post('/plan/:mode', (req, res) => {
 
 router.post('/image/:upload_type',(req,res)=>{
     if (req.params.upload_type == 'single') {
-      req.pipe(req.busboy);
       let formData = new Map();
       let bufs = [];
       req.busboy.on('field',(fieldName,fieldValue)=>{
@@ -465,17 +477,17 @@ router.post('/image/:upload_type',(req,res)=>{
       req.busboy.on('file',(fileName, file, fileInfo, encoding,mimetype)=>{
         formData.set('fileType',mimetype);
         formData.set('fileName',fileInfo.name);
-        file.on('date',(data)=>{
+        file.on('data',(data)=>{
           if(data!=null)
             bufs.push(data);
         });
       });
       req.busboy.on('finish',()=>{
         const request = req.app.locals.db.request();
-        request.input('data',sql.VarBinary, Buffer.concat(bufs));
+        request.input('data',sql.NVarChar, Buffer.concat(bufs).toString('hex'));
         request.input('image_mimetype', sql.VarChar, formData.fileType);
         request.input('name', sql.NVarChar, formData.fileName);
-        const query = `DECLARE @InsertedRows TABLE (image_id varchar(15)); Insert into Images(image_name,image_mimetype,image_data) OUTPUT inserted.image_id INTO @InsertedRows values(@name,@image_mimetype,@data);`;
+        const query = `DECLARE @InsertedRows TABLE (image_id varchar(15)); Insert into Images(image_name,img_mimetype,image_data) OUTPUT inserted.image_id INTO @InsertedRows values(@name,@image_mimetype,@data); Select image_id from @InsertedRows`;
         request.query(query, (queryErr, result) => {
             if (!queryErr) {
                 res.json({
@@ -494,11 +506,37 @@ router.post('/image/:upload_type',(req,res)=>{
         });
         
       });
+      req.pipe(req.busboy);
   
     } else {
         res.json({res:false, error_msg : "Invalid Parameter request"});
     }
   });
 
+router.get('/category',(req,res)=>{
+    req.app.locals.db.query('select * from categories',(queryErr,result)=>{
+        if(!queryErr) {
+            res.json({
+                res: true,
+                categories : result.recordset
+            });
+        } else {
+            res.json({ res : false, error_msg : 'Internal Server Error' });
+        }
+    })
+});
+
+router.post('/category',(req,res)=>{
+    const request = req.app.locals.db.request();
+    request.input('name', sql.NVarChar, req.body.name);
+    request.query('Insert Into categories(category_name) values(@name)', (queryErr,result)=>{
+        if(queryErr) {
+            res.json({res:true, action : false, errro_msg : 'Internal Server Error'});
+            console.log(queryErr);
+        } else {
+            res.json({res:true, action : true});
+        }
+    });
+});
 
 module.exports = router;
