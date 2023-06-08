@@ -89,16 +89,16 @@ router.get('/update', (req, res) => {
         request.input('weight', sql.NVarChar, weight);
         request.input('img', sql.NVarChar(100), images);
        
-        const query = `${ product_name!=name && newfirst?`INSERT into products(product_name, category,product_tax,product_image)values(@name,@cat,@tax,@img);`:``} insert into items(sale_price,regular_price,prime_price,item_weight,ministore_product_bonus,ministore_min_qty,item_stock,product_id) values(@sp,@rp,@mp,@weight,@bonus,@min,@stock,(select TOP 1 product_id from products order by id desc)) `
+        const query = `${ product_name!=name && newfirst?`INSERT into products(product_name, category,product_tax,product_image_id)values(@name,@cat,@tax,@img);`:``} insert into items(sale_price,regular_price,prime_price,item_weight,ministore_product_bonus,ministore_min_qty,item_stock,product_id) values(@sp,@rp,@mp,@weight,@bonus,@min,@stock,(select TOP 1 product_id from products order by id desc)) `
         if (newfirst) {
-          request.query('INSERT into products(product_name, category,product_tax,product_image) output inserted.product_id values(@name,@cat,@tax,@img);')    
+          request.query('INSERT into products(product_name, category,product_tax,product_image_id) output inserted.product_id values(@name,@cat,@tax,@img);')    
           request.input('ppid',sql.NVarChar, name);
           request.query('insert into items(sale_price,regular_price,prime_price,item_weight,ministore_product_bonus,ministore_min_qty,item_stock,product_id) values(@sp,@rp,@mp,@weight,@bonus,@min,@stock,@ppid)')
          
          
           newfirst=false
         } else if (product_name!=name) {
-          request.query('INSERT into products(product_name, category,product_tax,product_image) output inserted.product_id values(@name,@cat,@tax,@img);')  
+          request.query('INSERT into products(product_name, category,product_tax,product_image_id) output inserted.product_id values(@name,@cat,@tax,@img);')  
           request.input('id',sql.NVarChar, name);
           request.query('insert into items(sale_price,regular_price,prime_price,item_weight,ministore_product_bonus,ministore_min_qty,item_stock,product_id) values(@sp,@rp,@mp,@weight,@bonus,@min,@stock,@id)')
             
@@ -115,7 +115,7 @@ router.get('/update', (req, res) => {
 router.get('/', (req, res) => {
     try {
         if (req.query.category == undefined && req.query.search==undefined) {
-          req.app.locals.db.query('select p.id,p.product_id,p.product_name,p.category,p.subcategory,p.product_tax,p.product_image,item.item_id,item.item_stock,item.sale_price,item.regular_price,item.prime_price,item.ministore_min_qty,item.ministore_product_bonus,item.item_weight from products as p join items as item  on p.product_id=item.product_id where p.product_status=1 ', (queryErr, result) => {
+          req.app.locals.db.query('select top 25 p.id,p.product_id,p.product_name,p.category,p.subcategory,p.product_tax,p.product_image_id,img.image_data,item.item_id,item.item_stock,item.sale_price,item.regular_price,item.prime_price,item.ministore_min_qty,item.ministore_product_bonus,item.item_weight from products as p join items as item  on p.product_id=item.product_id join Images as img on p.product_image_id=img.image_id where p.product_status=1;', (queryErr, result) => {
             if(queryErr) {
               res.json({res:false});
               console.log(queryErr);
@@ -125,13 +125,14 @@ router.get('/', (req, res) => {
               // iterate through each element of the given JSON array
               data.forEach((d) => {
                 const { item_id,sale_price,regular_price,item_weight,ministore_min_qty,ministore_product_bonus, item_stock,prime_price } = d;
-                const {product_id,product_image,product_name,product_tax,category,subcategory,id} = d;
+                const {product_id,product_image_id,image_data,product_name,product_tax,category,subcategory,id} = d;
                 // if the product_id is not already present in the productItemsDict
                 if (!productItemsDict[product_id]) {
                   // create a new array with the item_id as value
                   productItemsDict[product_id] = {
                     product_id,
-                    product_image,
+                    product_image_id,
+                    image_data,
                     product_name,
                     category,
                     product_tax,
@@ -159,7 +160,7 @@ router.get('/', (req, res) => {
         } else if (req.query.category != undefined) {
           const request = req.app.locals.db.request();
           request.input('category',sql.NVarChar,`${req.query.category}`);
-          request.query(`select p.product_id,p.product_name,p.category,p.product_tax,p.product_image,item.item_id,item.item_stock,item.sale_price,item.regular_price,item.prime_price,item.ministore_min_qty,item.ministore_product_bonus,item.item_weight,c.category_name from products as p join items as item  on p.product_id=item.product_id join categories as c on p.category=c.category_id where p.product_status=1 and p.category=@category`, (queryErr, result) => {
+          request.query(`select p.product_id,p.product_name,p.category,p.product_tax,img.image_data,p.product_image_id,item.item_id,item.item_stock,item.sale_price,item.regular_price,item.prime_price,item.ministore_min_qty,item.ministore_product_bonus,item.item_weight,c.category_name from products as p join items as item  on p.product_id=item.product_id join categories as c on p.category=c.category_id join Images as img on p.product_image_id=img.image_id where p.product_status=1 and p.category=@category`, (queryErr, result) => {
             if(queryErr) {
               res.json({res:false});
               console.log(queryErr);
@@ -171,14 +172,15 @@ router.get('/', (req, res) => {
               // iterate through each element of the given JSON array
               data.forEach((d) => {
                 const { item_id,sale_price,regular_price,item_weight,ministore_min_qty,ministore_product_bonus, item_stock,prime_price } = d;
-                const {product_id,product_image,product_name,product_tax,category,category_name} = d;
+                const {product_id,product_image_id,image_data,product_name,product_tax,category,category_name} = d;
                 // if the product_id is not already present in the productItemsDict
                 if (!productItemsDict[product_id]) {
                   // create a new array with the item_id as value
                   productItemsDict[product_id] = {
                     product_id,
-                    product_image,
+                    product_image_id,
                     product_name,
+                    image_data,
                     category,
                     product_tax,
                     category_name,
@@ -203,7 +205,7 @@ router.get('/', (req, res) => {
         } else if (req.query.search != undefined) {
           const request = req.app.locals.db.request();
           request.input('product_name',sql.NVarChar,`${req.query.search}%`);
-          request.query(`select p.product_id,p.product_name,p.category,p.product_tax,p.product_image,item.item_id,item.item_stock,item.sale_price,item.regular_price,item.prime_price,item.ministore_min_qty,item.ministore_product_bonus,item.item_weight,c.category_name from products as p join items as item  on p.product_id=item.product_id join categories as c on p.category=c.category_id where p.product_status=1 and p.product_name like @product_name`, (queryErr, result) => {
+          request.query(`select p.product_id,p.product_name,p.category,p.product_tax,p.product_image_id,img.image_data,item.item_id,item.item_stock,item.sale_price,item.regular_price,item.prime_price,item.ministore_min_qty,item.ministore_product_bonus,item.item_weight,c.category_name from products as p join items as item  on p.product_id=item.product_id join categories as c on p.category=c.category_id join Images as img on p.product_image_id=img.image_id where p.product_status=1 and p.product_name like @product_name`, (queryErr, result) => {
             if(queryErr) {
               res.json({res:false});
               console.log(queryErr);
@@ -215,14 +217,15 @@ router.get('/', (req, res) => {
               // iterate through each element of the given JSON array
               data.forEach((d) => {
                 const { item_id,sale_price,regular_price,item_weight,ministore_min_qty,ministore_product_bonus, item_stock,prime_price } = d;
-                const {product_id,product_image,product_name,product_tax,category,category_name} = d;
+                const {product_id,product_image_id,image_data,product_name,product_tax,category,category_name} = d;
                 // if the product_id is not already present in the productItemsDict
                 if (!productItemsDict[product_id]) {
                   // create a new array with the item_id as value
                   productItemsDict[product_id] = {
                     product_id,
-                    product_image,
+                    product_image_id,
                     product_name,
+                    image_data,
                     category,
                     product_tax,
                     category_name,
@@ -259,7 +262,7 @@ router.get('/', (req, res) => {
 router.get('/home',(req,res)=>{
 
   try {
-    req.app.locals.db.query('select cart.category_name,p.product_id,p.product_name,p.category,p.product_tax,p.product_image,item.item_id,item.item_stock,item.sale_price,item.regular_price,item.prime_price,item.ministore_min_qty,item.ministore_product_bonus,item.item_weight from products as p join items as item  on p.product_id=item.product_id join categories as cart on p.category=cart.category_id where p.product_status=1',(queryErr,result)=>{
+    req.app.locals.db.query('select cart.category_name,p.product_id,p.product_name,p.category,p.product_tax,p.product_image_id,item.item_id,item.item_stock,item.sale_price,item.regular_price,item.prime_price,item.ministore_min_qty,item.ministore_product_bonus,item.item_weight from products as p join items as item  on p.product_id=item.product_id join categories as cart on p.category=cart.category_id where p.product_status=1',(queryErr,result)=>{
 
       if (!queryErr) {
         const productsData = result.recordset;
@@ -270,13 +273,13 @@ router.get('/home',(req,res)=>{
               // iterate through each element of the given JSON array
               data.forEach((d) => {
                 const { item_id,sale_price,regular_price,item_weight,ministore_min_qty,ministore_product_bonus, item_stock,prime_price } = d;
-                const {product_id,product_image,product_name,product_tax,category,category_name} = d;
+                const {product_id,product_image_id,product_name,product_tax,category,category_name} = d;
                 // if the product_id is not already present in the productItemsDict
                 if (!productItemsDict[product_id]) {
                   // create a new array with the item_id as value
                   productItemsDict[product_id] = {
                     product_id,
-                    product_image,
+                    product_image_id,
                     product_name,
                     category,
                     product_tax,
@@ -345,7 +348,7 @@ router.post('/cart/:cart_action',(req,res,next)=>{
   } else if (req.params.cart_action == 'get') {
     
     request.input('user_id',sql.NVarChar,req.user.id);
-    request.query('select cart.cart_id, item.item_id, item.quantity,itd.sale_price,itd.regular_price, itd.prime_price, itd.ministore_min_qty, itd.item_weight, itd.item_stock, itd.ministore_product_bonus,p.product_id ,p.product_name, p.product_tax, p.product_image,p.category from CartTable as cart join CartItems as item on  cart.cart_id=item.cart_id join items as itd on itd.item_id=item.item_id join products as p on p.product_id=itd.product_id where cart.user_id=@user_id;',(queryErr,result)=>{
+    request.query('select cart.cart_id, item.item_id, item.quantity,itd.sale_price,itd.regular_price, itd.prime_price, itd.ministore_min_qty, itd.item_weight, itd.item_stock, itd.ministore_product_bonus,p.product_id ,p.product_name, p.product_tax, p.product_image_id,p.category from CartTable as cart join CartItems as item on  cart.cart_id=item.cart_id join items as itd on itd.item_id=item.item_id join products as p on p.product_id=itd.product_id where cart.user_id=@user_id;',(queryErr,result)=>{
       if(!queryErr) {
         res.json({res:true, cart : result.recordset, action : true});
       } else {
@@ -396,7 +399,7 @@ router.post('/wishlist/:action',(req,res)=>{
     });
   } else if (req.params.action == 'get') {
     request.input('user_id',sql.NVarChar,req.user.id);
-    request.query('select wishlist.wishlist_id, item.item_id,itd.sale_price,itd.regular_price, itd.prime_price, itd.ministore_min_qty, itd.item_weight, itd.item_stock, itd.ministore_product_bonus,p.product_id ,p.product_name, p.product_tax, p.product_image,p.category from WishlistTable as wishlist join WishlistItems as item join on  wishlist.wishlist_id=item.wishlist_id join items as itd on itd.item_id=item.item_id join product as p on p.product_id=itd.product_id where cart.user_id=@user_id;',(queryErr,result)=>{
+    request.query('select wishlist.wishlist_id, item.item_id,itd.sale_price,itd.regular_price, itd.prime_price, itd.ministore_min_qty, itd.item_weight, itd.item_stock, itd.ministore_product_bonus,p.product_id ,p.product_name, p.product_tax, p.product_image_id,p.category from WishlistTable as wishlist join WishlistItems as item join on  wishlist.wishlist_id=item.wishlist_id join items as itd on itd.item_id=item.item_id join product as p on p.product_id=itd.product_id where cart.user_id=@user_id;',(queryErr,result)=>{
       if(!queryErr) {
         res.json({res:true, cart : result.recordset, action : true});
       } else {

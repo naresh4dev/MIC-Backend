@@ -5,6 +5,7 @@ const product_router = require('./routes/product');
 const order_router = require('./routes/orders');
 const mlm_router = require('./routes/mlm');
 const admin_router = require('./routes/admin');
+const wallet_router = require('./routes/wallet');
 const sql = require('mssql');
 const bodyParser = require('body-parser');
 const corsOrgin = require('cors')
@@ -14,7 +15,7 @@ const LocalStrategy = require('passport-local').Strategy;
 const bcrypt = require('bcrypt');
 const cookieParser = require('cookie-parser');
 const busboy = require('connect-busboy');
-const {SendOTP} = require('./connections/send-sms');
+const {SendOTP, SendWalletTransacMSG} = require('./connections/send-sms');
 
 const IsNumber = require('./utility/checkForNumber');
 
@@ -58,10 +59,12 @@ app.use('/api/products/',product_router);
 app.use('/api/orders/',order_router);
 app.use('/api/tree/',mlm_router);
 app.use('/api/admin/',admin_router);
+app.use('/api/wallet',wallet_router);
 
 passport.serializeUser(function(user, done) {
     done(null, user);
 });
+
 
 passport.deserializeUser(function(user, done) {
     const config = {
@@ -152,12 +155,12 @@ const config = {
     options : {
         encrypt : true,
         trustServerCertificate : true,
-        requestTimeout: 60000,
+        requestTimeout: 90000,
     },
     pool : {
         max : 30,
         min : 1,
-        idleTimeoutMillis : 30000,
+        idleTimeoutMillis : 60000,
     },
     
 }
@@ -176,22 +179,38 @@ appPool.connect().then(pool =>{
 
 app.post('/api/sendotp', async (req,res)=>{ 
     try {
-        const number = parseInt(req.body.number);
-        if (!IsNumber(number)) {
-            return res.json({res : false, error_msg : "Invalid Mobile Number"});
-        }
-        const result =  await SendOTP({Number : req.body.number});
-        if (result.success) {
-            return res.json({res:true, success : true, sms_id : result.msg_id});
+        if (req.query?.type != 'wallet') {
+            const number = parseInt(req.body.number);
+            if (!IsNumber(number)) {
+                return res.json({res : false, error_msg : "Invalid Mobile Number"});
+            }
+            const result =  await SendOTP({Number : req.body.number});
+            if (result.success) {
+                return res.json({res:true, success : true, sms_id : result.msg_id});
+            } else {
+                return res.json({res:true, success : false, error_msg : "Unable to process Msg Request" });
+            }
+        } else if (req.query.type =='wallet' && req.isAuthenticated()) {
+            const request = req.app.locals.db.request();
+            request.input('id',sql.NVarChar, req.user.id);
+            const getNumber = await request.query('select user_mobile_number from PrimeUsers where user_id=@id');
+            const number = getNumber.recordset[0].user_mobile_number;
+            if (!IsNumber(number)) {
+                return res.json({res : false, error_msg : "Invalid Mobile Number"});
+            }
+            const result = await SendWalletTransacMSG({Number : number, transacAmount : req.body.amount});
+            if (result.success) {
+                return res.json({res:true, success : true, sms_id : result.msg_id});
+            } else {
+                return res.json({res:true, success : false, error_msg : "Unable to process Msg Request" });
+            }
         } else {
-            return res.json({res:true, success : false, error_msg : "Unable to process Msg Request" });
+            res.json({res:false, error_msg : 'UnAuthorized'})
         }
-        
     } catch (err) {
         console.log(err)
         res.json({res : false, error_msg : "Internal Server Error"});
     }
-    
 });
 
 app.listen(process.env.PORT,(err)=>{

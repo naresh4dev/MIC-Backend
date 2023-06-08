@@ -7,40 +7,80 @@ const passport = require('passport');
 const axios = require('axios');
 const SendSMS = require('../connections/send-sms');
 const IsNumber = require('../utility/checkForNumber');
+const isLoggedIn = require('../utility/isLoggedIn');
 
 router.use(bodyParser.urlencoded({extended:false}));
 
-router.post('/signin', passport.authenticate('login'),(req,res)=>{
+router.post('/signin', async (req,res,next)=>{
+    if (req.body.email.slice(0,3) == 'APJ') {
+        passport.authenticate('prime-login', (err, user, info) => {
+          if (err) {
+            console.error(err);
+            return res.json({ res: false });
+          }
+          if (!user) {
+            return res.json({ res: false });
+          }
+    
+          req.login(user, (err) => {
+            if (err) {
+              console.error(err);
+              return res.json({ res: false });
+            }
+            next(); // Call next() to proceed to the next middleware/route handler
+          });
+        })(req, res, next);
+      } else {
+        passport.authenticate('login', (err, user, info) => {
+          if (err) {
+            console.error(err);
+            return res.json({ res: false });
+          }
+          if (!user) {
+            return res.json({ res: false });
+          }
+    
+          req.login(user, (err) => {
+            if (err) {
+              console.error(err);
+              return res.json({ res: false });
+            }
+            next(); // Call next() to proceed to the next middleware/route handler
+          });
+        })(req, res, next);
+      }
+},(req,res)=>{
     res.header('Access-Control-Allow-Credentials', 'true');
     const request = req.app.locals.db.request();
     
     request.input('user_id',sql.NVarChar,req.user.id);
-    request.query(`select user_id, username, fname,lname,user_email from users where user_id=@user_id`,(queryErr,result)=>{
-        if(!queryErr) {
-            
-            res.json({res:true, user:{id : req.user.id,fname : result.recordset[0].fname,lname : result.recordset[0].lname ,type : req.user.type, username : result.recordset[0].username,email : result.recordset[0].user_email }});
-        } else {
-            console.log(queryErr);
-            res.json({res:false});
-        }
-    });
+    if (req.user.type == 'user') {
+        request.query(`select user_id, username, fname,lname,user_email from users where user_id=@user_id`,(queryErr,result)=>{
+            if(!queryErr) {
+                
+                res.json({res:true, user:{id : req.user.id,fname : result.recordset[0].fname,lname : result.recordset[0].lname ,type : req.user.type, username : result.recordset[0].username,email : result.recordset[0].user_email }});
+            } else {
+                console.log(queryErr);
+                res.json({res:false});
+            }
+        });
+    } else {
+        request.query('select p.user_id, p.user_name, p.user_email, p.user_status, p.user_type,pw.wallet_amount, pw.discount_coupon from PrimeUsers as p join PrimeUsersWallet as pw on p.user_id=pw.prime_user_id where p.user_id=@user_id',(queryErr,result)=>{
+            if(!queryErr) {
+                
+                res.json({res:true, user : {id : result.recordset[0].user_id,user_type :result.recordset[0].user_type, user_name : result.recordset[0].user_name ,type : req.user.type, wallet_amount : result.recordset[0].wallet_amount, discount_coupon : result.recordset[0].discount_coupon}});
+            } else {
+                res.json({res:false});
+            }
+        });
+    }
+    
+
+   
 });
 
 
-router.post('/prime', passport.authenticate('prime-login'),(req,res)=>{
-    res.header('Access-Control-Allow-Credentials', 'true');
-    const request = req.app.locals.db.request();
-    request.input('user_id',sql.NVarChar, req.user.id);
-    request.query('select user_id, user_name, user_email, user_status, user_type from PrimeUsers where user_id=@user_id',(queryErr,result)=>{
-        if(!queryErr) {
-            
-            
-            res.json({res:true, user : {id : result.recordset[0].user_id,user_type :result.recordset[0].user_type, user_name : result.recordset[0].user_name ,type : req.user.type}});
-        } else {
-            res.json({res:false});
-        }
-    });
-});
+
 
 router.post('/',(req,res)=>{
     if(req.isAuthenticated()){
@@ -48,9 +88,10 @@ router.post('/',(req,res)=>{
         const request = req.app.locals.db.request();
         request.input('user_id',sql.NVarChar, req.user.id);
         if(req.user.type =='prime') {
-            request.query('select user_id, user_name, user_email, user_status, user_type from PrimeUsers where user_id=@user_id',(queryErr,result)=>{
+            request.query('select p.user_id, p.user_name, p.user_email, p.user_status, p.user_type,pw.wallet_amount, pw.discount_coupon from PrimeUsers as p join PrimeUsersWallet as pw on p.user_id=pw.prime_user_id where p.user_id=@user_id',(queryErr,result)=>{
                 if(!queryErr) {
-                    res.json({res:true, user : {id : result.recordset[0].user_id,user_type :result.recordset[0].user_type, user_name : result.recordset[0].user_name ,type : req.user.type}});
+                    
+                    res.json({res:true, user : {id : result.recordset[0].user_id,user_type :result.recordset[0].user_type, user_name : result.recordset[0].user_name ,type : req.user.type, wallet_amount : result.recordset[0].wallet_amount, discount_coupon : result.recordset[0].discount_coupon}});
                 } else {
                     res.json({res:false});
                 }
@@ -71,26 +112,7 @@ router.post('/',(req,res)=>{
     }
 })
 
-router.post('/login',(req,res)=>{
-    const request = req.app.locals.db.request();
-    request.input('email',sql.VarChar,req.body.email);
-    request.input('password',sql.NVarChar,req.body.password);
-    request.query(`select * from users where user_email = @email`,(queryErr,result)=>{
-        if(queryErr){
-            console.error(queryErr);
-            res.json({res:false});
-        } else {
-            console.log(result);
-            console.log(req.body);
-            if (result.recordset.length === 0) {
-                res.json({res:true,auth : false});
-            } else {
-                res.json({res:true, auth : true, user : result.recordset[0]});
-            }
-            
-        }
-    });
-});
+
 
 
 
@@ -197,13 +219,7 @@ router.post('/support',(req,res)=>{
 });
 
 
-router.get('/address',(req,res,next)=>{
-    if(req.isAuthenticated())
-    next()
-    else {
-        res.json({res:false, error_msg : "Auth Required"});
-    }
-},(req,res)=>{
+router.get('/address',isLoggedIn,(req,res)=>{
     try {
         const request = req.app.locals.db.request();
         request.input('user_id', sql.NVarChar, req.user.id);

@@ -27,11 +27,11 @@ router.post('/products/upload/:type', async (req, res) => {
                             
                             const request = req.app.locals.db.request();
                             request.input('product_name', sql.NVarChar, data.name);
-                            request.input('category', sql.NVarChar, data.category)
+                            request.input('category', sql.NVarChar, data.category_name)
                             request.input('description', sql.NVarChar, data.description);
                             request.input('sub_cat', sql.NVarChar, data.sub_category);
                             request.input('product_tax', sql.Decimal, data.product_tax);
-                            request.input('img', sql.NVarChar, '');
+                            request.input('img', sql.NVarChar, data.image_id);
                             request.input('sale_price', sql.Decimal, data.sale_price);
                             request.input('regular_price', sql.Decimal, data.regular_price);
                             request.input('prime_price', sql.Decimal, data.prime_price);
@@ -39,7 +39,7 @@ router.post('/products/upload/:type', async (req, res) => {
                             request.input('item_stock', sql.Int, data.item_stock);
                             request.input('ministore_bonus', sql.Decimal, data.ministore_bonus);
                             request.input('weight', sql.NVarChar, data.weight);
-                            
+                            request.input('eligible',sql.Int, data.redeem_points);
                             
                             if (productMap.has(data.name)) {
                                 console.log(`Skipped insertion for product: ${data.name}`);
@@ -59,23 +59,18 @@ router.post('/products/upload/:type', async (req, res) => {
                                 END
                                 ELSE
                                 BEGIN
-                                  INSERT INTO products (product_name, category, product_description, product_tax, product_image, subcategory)
-                                  OUTPUT INSERTED.product_id
+                                  INSERT INTO products (product_name, category, product_description, product_tax, product_image_id, subcategory)
+                                 
                                   VALUES (@product_name, @category, @description, @product_tax, @img, @sub_cat);
                                 END`;
-                                const result = await request.query(productInsertQuery);
-                                if (result.recordset.length !== 0) {
-                                    // Product exists, retrieve the ID
-                                    const product_id = result.recordset[0].product_id;
-                                    console.log(product_id);
-                                    request.input('product_id', sql.NVarChar, product_id);
-                                    // Store the product ID in the map
-                                  }
+                                request.query(productInsertQuery);
+                               
+                                  
                             }
-                            const itemQuery = `INSERT INTO items (sale_price, regular_price, prime_price, ministore_min_qty, ministore_product_bonus, item_weight, item_stock, product_id) 
-                                                 VALUES (@sale_price, @regular_price, @prime_price, @mqty, @ministore_bonus, @weight, @item_stock,(select product_id from products where product_name=@product_name));
+                            const itemQuery = `INSERT INTO items (sale_price, regular_price, prime_price, ministore_min_qty, ministore_product_bonus, item_weight, item_stock, product_id,eligiblity_to_redeem_discount_coupon) 
+                                                 VALUES (@sale_price, @regular_price, @prime_price, @mqty, @ministore_bonus, @weight, @item_stock,(select product_id from products where product_name=@product_name), @eligible);
                                             `;
-                            await request.query(itemQuery);
+                             request.query(itemQuery);
                         } catch (err) {
                             
                             console.error(err);

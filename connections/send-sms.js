@@ -132,26 +132,25 @@ const SendOrderConfirmationMSG = async (bodyData)=>{
 const SendWalletTransacMSG = async (bodyData)=>{
     try {
         const number = GenerateOTP();
-        const smsText = `OTP for debit of Rs. ${bodyData.tranacAmount} from your wallet ac is ${number} - AATRAL ORGANICS PVT.LTD`;
+        const smsText = `OTP for the debit of Rs. ${bodyData.transacAmount} from your wallet ac is ${number} - AATRAL ORGANICS PVT. LTD`;
         const result = await SendSMS({Text : smsText, Number : bodyData.Number});
         if(result.Success) {
             const savedResult = await sqlConnect().then(async connection=>{
                 const request = new sql.Request(connection);
                 request.input('number',sql.Char,bodyData.Number);
                 request.input('id',sql.NVarChar,result.MessageUUID);
-                request.input('otp',sql.Int, otp);
+                request.input('otp',sql.Int, number);
                 const sqlQuery = `INSERT INTO OTPSMS(msg_id, otp,num) values(@id,@otp,@number)`;
                 const queryResult =  await request.query(sqlQuery);
                 if (queryResult.rowsAffected[0] == 1) {
                     return {success : true, msg_id : result.MessageUUID};
                 } else {
-                    if (err) {
-                        console.log(err);
-                        return {success : false}
-                    }   
+                    return {success : false}
                 }
             });
+            return savedResult
         } else {
+            console.log(result);
             return {success : false}
         }
         
@@ -161,11 +160,33 @@ const SendWalletTransacMSG = async (bodyData)=>{
     }
 }
 
+const VerifyOTP = async (bodyData) =>{
+    try {
+        const otp = parseInt(bodyData.otp);
+        const msg_id = bodyData.sms_id;
+        const connection = await sqlConnect();
+        const request = new sql.Request(connection);
+        request.input('otp',sql.Int,otp);
+        request.input('id',sql.NVarChar,msg_id);
+        const checkOTPQuery = 'select * from OTPSMS where msg_id=@id and otp=@otp';
+        const result = await request.query(checkOTPQuery);
+        if (result.recordset.length === 0) {
+            return {verify : false}
+        } else {
+            return {verify : true}
+        }
+    } catch (err) {
+        console.error(err);
+        return {verify : false};
+    }
+}
+
 module.exports = {
     SendOTP,
     SendMobileVerification,
     SendWelcomeMSG,
     SendOrderConfirmationMSG, 
     SendWalletTransacMSG,
+    VerifyOTP
 }
 

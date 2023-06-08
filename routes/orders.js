@@ -107,5 +107,4 @@ router.post('/get_one',(req,res)=>{
     });
 });
 
-
 module.exports = router;
