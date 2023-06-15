@@ -322,4 +322,40 @@ router.post("/address/:mode",(req,res,next)=>{
     }
 });
 
+router.post('/resetpassword',async (req, res)=>{
+    try {
+        if (req.body.user_id == undefined || req.body.sms_id == undefined || req.body.user_entered_otp==undefined || req.body.password == undefined || req.body.password.length < 8 )
+            throw new Error('Invalid Request Body');
+        const verification = await SendSMS.VerifyOTP({otp : req.body.user_entered_otp, sms_id : req.body.sms_id});
+        if(!verification.verify) 
+            throw new Error("Invalid OTP");
+        const response = await bcrypt.hash(req.body.password, 10, async (err, hash)=>{
+            if(err)
+                throw new Error("Unable to hash the password");
+            const request = req.app.locals.db.request();
+            request.input('user_id', sql.NVarChar, req.body.user_id);
+            request.input('password', sql.NVarChar, hash);
+            let updateQuery;
+            if (req.body.user_id.slice(0,3)=='APJ')
+                updateQuery = 'update PrimeUsers set user_password=@password where user_id=@user_id;';
+            else 
+                updateQuery = 'update users set password=@password where user_id=@user_id;';
+            const result = await request.query(updateQuery);
+            if (result.rowsAffected[0] != 1) {
+                return {res:true, action : false,}
+            } else {
+                return {res:true, action : true}
+            }
+        });
+        return res.json(response);
+
+        
+
+    } catch (err) {
+        res.json({res:false, error_msg : err.message});
+    }
+    
+});
+
+
 module.exports = router;

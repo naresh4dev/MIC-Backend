@@ -4,6 +4,8 @@ const { route } = require('./auth');
 const router = require('express').Router();
 const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
+const isLoggedIn = require('../utility/isLoggedIn');
+const IsNumber = require('../utility/checkForNumber');
 
 router.get('/',(req,res)=>{
     if (req.query.memberid !='' && req.query.memberid !='undefined' && req.query.memberid !=undefined) 
@@ -191,5 +193,58 @@ router.get('/wallet',(req,res,next)=>{
     });
 });
 
+router.get('/dairy',isLoggedIn, async (req,res)=>{
+    try {
+        const request = req.app.locals.db.request();
+        request.input('id',sql.NVarChar, req.user.id);
+        const getDairyQuery = 'Select * from MLMDairy where member_sponsor_id=@id';
+        const result = await request.query(getDairyQuery);
+        res.json({res:true, members : result.recordset});
+    
+    } catch (err) {
+        console.log(err);
+        res.json({res:false, error_msg : err.message});
+    }
+});
+
+router.post('/dairy/:type',isLoggedIn, async (req,res)=>{
+    const type = req.params.type;
+    if (type == 'new') {
+        try {
+            if (!IsNumber(req.body.member_details.member_phone)) {
+                throw new Error('Invalid Mobile Number');
+            }
+            const request = req.app.locals.db.request();
+            request.input('name', sql.NVarChar, req.body.member_details.member_name);
+            request.input('email', sql.NVarChar, req.body.member_details.member_email);
+            request.input('phone', sql.Char, req.body.member_details.member_phone);
+            request.input('id', sql.NVarChar, req.user.id);
+
+            const insertQuery = 'Insert into MLMDairy(member_name,member_email,member_phone,member_sponsor_id) values(@name,@email,@phone,@id)';
+            const result = await request.query(insertQuery);
+            res.json({res : true, action : true});
+            
+        } catch (err) {
+            console.log(err);
+            res.json({res:false, error_msg : err.message});
+        }
+    } else if (type=='update') {
+        try {
+            const request = req.app.locals.db.request();
+            request.input('id', sql.NVarChar, req.body.member_id);
+            request.input('status', sql.NVarChar, req.body.status);
+            const updateQuery = 'Update MLMDairy set status=@status where member_id=@id';
+            const result = await request.query(updateQuery);
+            if (result.rowsAffected[0] ==0) 
+                throw new Error('Member Not Found');
+            res.json({res:true, action : true});    
+        } catch (err) {
+            console.log(err);
+            res.json({res:false, error_msg : err.message});
+        }
+    } else {
+        res.json({res:false, error_msg : 'Invalid Parameters. Check your request URL'});
+    }
+});
 
 module.exports = router;
