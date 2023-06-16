@@ -128,8 +128,28 @@ router.post('/add',(req,res)=>{
             request.input('plan_id',sql.NVarChar,req.body.plan_id);
             request.input('is_active',sql.Bit,0);
             request.input('sponsor_id',sql.VarChar,req.body.sponsor_id);
-            request.query(" Insert into PrimeUsers(user_name,user_parent_id,registered_month,registered_year,user_type,user_password,user_position,user_status,user_sponsor_id) values (@name,@parentID,@month,@year,@type,@password,@position,@is_active,@sponsor_id);",(queryErr,result)=>{
+            const insertQuery = `
+            DECLARE @flag bit ;
+            SET @flag = 0;
+            IF @position='L' and (Select LeftChildID from BinaryTreeMLM where MemberID=@parentID) is not null 
+            BEGIN 
+            SET @flag=1; 
+            END 
+            IF @position='R' and (select RightChildID from BinaryTreeMLM where MemberID=@parentID) is not null 
+            BEGIN 
+            SET @flag = 1; 
+            END  
+            IF @flag=0 
+            BEGIN 
+            Insert into PrimeUsers(user_name,user_parent_id,registered_month,registered_year,user_type,user_password,user_position,user_status,user_sponsor_id) 
+            values (@name,@parentID,@month,@year,@type,@password,@position,@is_active,@sponsor_id);
+            END
+            
+            `
+            
+            request.query(insertQuery,(queryErr,result)=>{
                 if(!queryErr) {
+                    
                     res.json({res:true, action : true});
                 } else {
                     console.log(queryErr);
