@@ -117,11 +117,13 @@ router.post('/add',(req,res)=>{
             const now = new Date();
             const currentMonth = (now.getMonth() + 1).toString().padStart(2, '0');
             const currentYear = now.getFullYear().toString().slice(-2);
+            const currentDate = (now.getDate).toString();
             const request = req.app.locals.db.request();
             request.input('name',sql.NVarChar,req.body.user_name);
             request.input('password',sql.NVarChar,hash);
             request.input('year',sql.NChar,currentYear);
             request.input('month',sql.NChar,currentMonth);
+            request.input('date',sql.NChar,currentDate);
             request.input('type',sql.VarChar,req.body.user_type);
             request.input('parentID',sql.NVarChar,req.body.parentID);
             request.input('position',sql.NChar,req.body.position);
@@ -141,8 +143,8 @@ router.post('/add',(req,res)=>{
             END  
             IF @flag=0 
             BEGIN 
-            Insert into PrimeUsers(user_name,user_parent_id,registered_month,registered_year,user_type,user_password,user_position,user_status,user_sponsor_id) 
-            values (@name,@parentID,@month,@year,@type,@password,@position,@is_active,@sponsor_id);
+            Insert into PrimeUsers(user_name,user_parent_id,registered_month,registered_year,registered_date,user_type,user_password,user_position,user_status,user_sponsor_id,prime_plan_id) 
+            values (@name,@parentID,@month,@year,@date,@type,@password,@position,@is_active,@sponsor_id,@plan_id);
             END
             
             `
