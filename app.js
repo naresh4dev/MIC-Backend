@@ -21,7 +21,7 @@ const IsNumber = require('./utility/checkForNumber');
 
 const app = express();
 const corsOptions = {
-    origin: process.env.CORS_DOMAIN,
+    origin: ['https://admin.otpindia.in', 'https://otpindia.in', 'https://master.otpindia.in'],
     credentials: true, //access-control-allow-credentials:true
     optionSuccessStatus: 200
 }
