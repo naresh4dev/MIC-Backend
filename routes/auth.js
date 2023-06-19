@@ -240,13 +240,7 @@ router.get('/address',isLoggedIn,(req,res)=>{
 })
 
 
-router.post("/address/:mode",(req,res,next)=>{
-    if(req.isAuthenticated())
-    next()
-    else {
-        res.json({res:false, error_msg : "Auth Required"});
-    }
-},(req,res)=>{
+router.post("/address/:mode",isLoggedIn,(req,res)=>{
     if (req.params.mode == 'new') {
         try {
             const request = req.app.locals.db.request();

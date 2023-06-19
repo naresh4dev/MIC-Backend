@@ -6,6 +6,7 @@ const order_router = require('./routes/orders');
 const mlm_router = require('./routes/mlm');
 const admin_router = require('./routes/admin');
 const wallet_router = require('./routes/wallet');
+const image_router = require('./routes/image');
 const sql = require('mssql');
 const bodyParser = require('body-parser');
 const corsOrgin = require('cors')
@@ -21,7 +22,7 @@ const IsNumber = require('./utility/checkForNumber');
 
 const app = express();
 const corsOptions = {
-    origin: ['https://admin.otpindia.in', 'https://otpindia.in', 'https://master.otpindia.in'],
+    origin: ['https://admin.otpindia.in', 'https://otpindia.in', 'https://master.otpindia.in','http://localhost:8080'],
     credentials: true, //access-control-allow-credentials:true
     optionSuccessStatus: 200
 }
@@ -60,6 +61,7 @@ app.use('/api/orders/',order_router);
 app.use('/api/tree/',mlm_router);
 app.use('/api/admin/',admin_router);
 app.use('/api/wallet',wallet_router);
+app.use('/api/image',image_router);
 
 passport.serializeUser(function(user, done) {
     done(null, user);
