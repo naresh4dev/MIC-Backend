@@ -199,14 +199,14 @@ router.get('/update',(req,res)=>{
 
 
 router.get('/wallet',(req,res,next)=>{
-    if(req.isAuthenticated() && req.user.type =='Prime')
+    if(req.isAuthenticated() && req.user.type =='prime')
         next()
     else 
         res.sendStatus(403);
 },(req,res)=>{
     const request = req.app.locals.db.request();
     request.input('user_id', sq.NChar,req.user.id);
-    request.query("Select * from Wallet where user_id=@user_id",(queryErr,result)=>{
+    request.query("Select * from PrimeUsersWallet where prime_user_id=@user_id",(queryErr,result)=>{
         if(!queryErr) {
             res.json({res:true, wallet_balance : result.recordset[0].wallet_balance, discount_coupon : result.recordset[0].discount_coupon});
         } else {
@@ -233,7 +233,7 @@ router.post('/dairy/:type',isLoggedIn, async (req,res)=>{
     const type = req.params.type;
     if (type == 'new') {
         try {
-            if (!IsNumber(req.body.member_details.member_phone)) {
+            if (!IsNumber(req.body?.member_details?.member_phone)) {
                 throw new Error('Invalid Mobile Number');
             }
             const request = req.app.locals.db.request();
