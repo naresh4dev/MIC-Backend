@@ -38,10 +38,10 @@ app.use(bodyParser.urlencoded({extended : false}));
 app.use(session({
     secret :process.env.SESSION_SECRET,
     cookie : {
-        maxAge: 24 * 60 * 60 * 1000,
-        httpOnly : false
+        maxAge: 30 * 24 * 60 * 60 * 1000,
+        httpOnly : false,
+        secure : true,
     },
-    resave: false,
     saveUninitialized: false,
 }));
 app.use(cookieParser())
