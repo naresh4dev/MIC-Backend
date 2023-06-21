@@ -598,9 +598,8 @@ function generateSubQueryOnFrequency(interval,tableName,date=null,month=null,yea
             DATEPART(YEAR, created_at) = '${year}' and
             DATEPART(MONTH, created_at) = '${month}'
             `;
-            break;
-        case 'year' : 
-        case 'month':
+            break; 
+        case 'year':
             subquery = `
             
             SELECT CAST(created_at as DATE) as full_date,
@@ -613,7 +612,18 @@ function generateSubQueryOnFrequency(interval,tableName,date=null,month=null,yea
             DATEPART(YEAR, created_at) = '${year}'
             `
         break;
-
+        case 'custom' : 
+            subquery = `
+            SELECT CAST(created_at as DATE) as full_date,
+            DATEPART(YEAR, created_at) AS year,
+            DATEPART(MONTH, created_at) AS month,
+            id
+            FROM 
+            ${tableName}
+            WHERE
+            CAST(created_at as DATE) BETWEEN '${date.from}' and '${date.to}'
+            `
+        break;
     }
     return subquery !=''?{response : true, query : subquery}: {response:false};
 }
@@ -628,6 +638,8 @@ router.post('/reports/:type',async (req,res)=>{
                 response  = generateSubQueryOnFrequency('month','Orders',null,req.body.month,req.body.year);
             } else if (req.body.frequency == 'year') {
                 response  = generateSubQueryOnFrequency('year','Orders',null,null,req.body.year);
+            } else if (req.body.frequency == 'custom') {
+                response = generateSubQueryOnFrequency('custom','Orders',{from : req.body.from_date, to : req.body.to_date});
             } else {
                 throw new Error('Invalid Frequency');
             }
@@ -697,6 +709,8 @@ router.post('/reports/:type',async (req,res)=>{
                 response  = generateSubQueryOnFrequency('month','WalletTransaction',null,req.body.month,req.body.year);
             } else if (req.body.frequency == 'year') {
                 response  = generateSubQueryOnFrequency('year','WalletTransaction',null,null,req.body.year);
+            } else if (req.body.frequency == 'custom') {
+                response = generateSubQueryOnFrequency('custom','WalletTransaction',{from : req.body.from_date, to : req.body.to_date});
             } else {
                 throw new Error('Invalid Frequency');
             }
@@ -733,6 +747,8 @@ router.post('/reports/:type',async (req,res)=>{
             response  = generateSubQueryOnFrequency('month','WithdrawalRequests',null,req.body.month,req.body.year);
         } else if (req.body.frequency == 'year') {
             response  = generateSubQueryOnFrequency('year','WithdrawalRequests',null,null,req.body.year);
+        } else if (req.body.frequency == 'custom') {
+            response = generateSubQueryOnFrequency('custom','WithdrawalRequests',{from : req.body.from_date, to : req.body.to_date});
         } else {
             throw new Error('Invalid Frequency');
         }

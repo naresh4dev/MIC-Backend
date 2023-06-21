@@ -22,7 +22,7 @@ const IsNumber = require('./utility/checkForNumber');
 
 const app = express();
 const corsOptions = {
-    origin: ['https://admin.otpindia.in', 'https://otpindia.in', 'https://master.otpindia.in','http://localhost:8080'],
+    origin: ['https://admin.otpindia.in', 'https://otpindia.in', 'https://master.otpindia.in','http://localhost:8080','http://localhost:3000'],
     credentials: true, //access-control-allow-credentials:true
     optionSuccessStatus: 200
 }
