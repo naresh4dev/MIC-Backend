@@ -16,36 +16,40 @@ router.post('/signin', async (req,res,next)=>{
         passport.authenticate('prime-login', (err, user, info) => {
           if (err) {
             console.error(err);
-            return res.json({ res: false });
+            return res.status(401).json({ res: false });
           }
           if (!user) {
-            return res.json({ res: false });
+            return res.status(401).json({res:false});
           }
     
           req.login(user, (err) => {
             if (err) {
               console.error(err);
-              return res.json({ res: false });
-            }
-            next(); // Call next() to proceed to the next middleware/route handler
+              return res.status(401).json({ res: false });
+            } else {
+                next();
+            } 
+             // Call next() to proceed to the next middleware/route handler
           });
         })(req, res, next);
       } else {
         passport.authenticate('login', (err, user, info) => {
           if (err) {
             console.error(err);
-            return res.json({ res: false });
+            return res.status(401).json({ res: false });
           }
           if (!user) {
-            return res.json({ res: false });
+            return res.status(401).json({ res: false });
           }
     
           req.login(user, (err) => {
             if (err) {
               console.error(err);
-              return res.json({ res: false });
+              return res.status(401).json({ res: false });
+            } else {
+                next();
             }
-            next(); // Call next() to proceed to the next middleware/route handler
+             // Call next() to proceed to the next middleware/route handler
           });
         })(req, res, next);
       }
@@ -70,6 +74,7 @@ router.post('/signin', async (req,res,next)=>{
                 
                 res.json({res:true, user : {id : result.recordset[0].user_id,user_type :result.recordset[0].user_type, user_name : result.recordset[0].user_name ,type : req.user.type, wallet_amount : result.recordset[0].wallet_amount, discount_coupon : result.recordset[0].discount_coupon}});
             } else {
+                console.log(queryErr);
                 res.json({res:false});
             }
         });
