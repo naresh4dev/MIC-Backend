@@ -20,7 +20,7 @@ router.get('/',(req,res)=>{
                     let orgChartJson = {};
     
                     // Find the root node of the tree
-                    let rootNode = json.tree.find(node => req.query.memberid=="root"?node.MemberID=="APJ2304000001":node.MemberID==req.query.memberid);
+                    let rootNode = json.tree.find(node => req.query.memberid=="root"?node.ParentID==null:node.MemberID==req.query.memberid);
     
                     // Create the root node in org chart format
     
@@ -64,6 +64,8 @@ router.get('/',(req,res)=>{
             console.error(error);
         } 
 
+    } else {
+        res.json({res:false, error_msg : 'Invalid memberid'});
     }
     
 });
