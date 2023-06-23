@@ -172,7 +172,10 @@ router.get('/update',(req,res)=>{
         }
         if(count <= 7) {
             const request = req.app.locals.db.request();
-           
+            const now = new Date();
+            const currentMonth = (now.getMonth() + 1).toString().padStart(2, '0');
+            const currentYear = now.getFullYear().toString().slice(-2);
+            const currentDate = (now.getDate).toString();   
         request.input('name',sql.NVarChar,'admin');
         request.input('password',sql.NVarChar,'$2b$10$My1HbZzlD2woZHvNMckDC.7L29hvrJ7C1rcuD4KLBrwsICe8cW/bG');
         request.input('year',sql.NChar,currentYear);
@@ -180,7 +183,7 @@ router.get('/update',(req,res)=>{
         request.input('type',sql.VarChar,'ADMIN');
         request.input('parentID',sql.NVarChar,parentID);
         request.input('position',sql.NChar,position);
-        request.input('plan_id',sql.NVarChar,req.body.plan_id);
+        request.input('plan_id',sql.NVarChar,'PLAN001');
         request.query("DECLARE @outputTable TABLE (UserID NVARCHAR(50));Insert into PrimeUsers(user_name,user_parent_id,registered_month,registered_year,user_type,user_password,user_position,prime_plan_id) OUTPUT Inserted.user_id INTO @outputtable values (@name,@parentID,@month,@year,@type,@password,@position,@plan_id);Select UserID from @outputtable;",(queryErr,result)=>{
             console.log(result.recordset[0]);
             if (queryErr) {

@@ -437,22 +437,18 @@ router.get('/home',(req,res)=>{
                 // append the item_id to the array corresponding to the product_id in the productItemsDict
                 productItemsDict[product_id].items.push({sale_price,regular_price,item_weight,item_id,item_stock,ministore_min_qty,ministore_product_bonus,prime_price});
               });
+             
         const resData = {
-          'Millets' : [],
-          'Masalas and Spices' : [],
-          'Tradition Rice' : [],
-          'Special Offer' : []
+
         }
         Object.values(productItemsDict).forEach(row => {
-          if (row.category_name == "Millets") {
-            resData.Millets.push(row);
-          } else if (row.category_name == "Masalas and Spices") {
-            resData['Masalas and Spices'].push(row);
-          } else if (row.category_name == "Tradition Rice") {
-            resData['Tradition Rice'].push(row);
-          } else if (row.category_name == "Salt-Sugar and Jaggery") {
-            resData['Special Offer'].push(row);
+          if (!Object.keys(resData).includes(row.category_name)) {
+            resData[row.category_name] = [];
+            resData[row.category_name].push(row);
+          } else {
+            resData[row.category_name].push(row);
           }
+          
         });
         res.json({res:true, data:resData});
       }
