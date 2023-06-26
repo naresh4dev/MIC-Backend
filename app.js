@@ -19,6 +19,7 @@ const busboy = require('connect-busboy');
 const {SendOTP, SendWalletTransacMSG} = require('./connections/send-sms');
 
 const IsNumber = require('./utility/checkForNumber');
+const CalculatePointsToWalletTransfer = require('./utility/ScheduledMLMActions');
 
 const app = express();
 const corsOptions = {
@@ -157,12 +158,12 @@ const config = {
     options : {
         encrypt : true,
         trustServerCertificate : true,
-        requestTimeout: 90000,
+        requestTimeout: 9000000,
     },
     pool : {
         max : 30,
         min : 1,
-        idleTimeoutMillis : 60000,
+        idleTimeoutMillis : 600000,
     },
     
 }
@@ -214,6 +215,8 @@ app.post('/api/sendotp', async (req,res)=>{
         res.json({res : false, error_msg : "Internal Server Error"});
     }
 });
+
+CalculatePointsToWalletTransfer();
 
 app.listen(process.env.PORT,(err)=>{
     if(!err)

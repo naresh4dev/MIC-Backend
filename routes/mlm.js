@@ -178,8 +178,8 @@ router.get('/update',(req,res)=>{
             const currentMonth = (now.getMonth() + 1).toString().padStart(2, '0');
             const currentYear = now.getFullYear().toString().slice(-2);
             const currentDate = (now.getDate).toString();   
-        request.input('name',sql.NVarChar,'admin');
-        request.input('password',sql.NVarChar,'$2b$10$My1HbZzlD2woZHvNMckDC.7L29hvrJ7C1rcuD4KLBrwsICe8cW/bG');
+        request.input('name',sql.NVarChar,'admin');//1	APJ2306000001	23	06	NULL	PLAN001	admin	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	NULL	$2b$10$My1HbZzlD2woZHvNMckDC.7L29hvrJ7C1rcuD4KLBrwsICe8cW/bG	NULL	ADMIN	NULL	NULL	NULL	NULL	NULL	0	2023-06-23 21:38:44.863
+        request.input('password',sql.NVarChar,'$2b$10$jouQcDHeaz1luEDqexwuqeYPxUke04uxvR3o2Xdt.qllHY0E8QqOi');
         request.input('year',sql.NChar,currentYear);
         request.input('month',sql.NChar,currentMonth);
         request.input('type',sql.VarChar,'ADMIN');
@@ -187,12 +187,24 @@ router.get('/update',(req,res)=>{
         request.input('position',sql.NChar,position);
         request.input('plan_id',sql.NVarChar,'PLAN001');
         request.query("DECLARE @outputTable TABLE (UserID NVARCHAR(50));Insert into PrimeUsers(user_name,user_parent_id,registered_month,registered_year,user_type,user_password,user_position,prime_plan_id) OUTPUT Inserted.user_id INTO @outputtable values (@name,@parentID,@month,@year,@type,@password,@position,@plan_id);Select UserID from @outputtable;",(queryErr,result)=>{
-            console.log(result.recordset[0]);
+            console.log(result?.recordset[0]);
             if (queryErr) {
                 console.log(queryErr);
             }
-            insertUsersToDB(result.recordset[0].UserID,'L',count+1);
             insertUsersToDB(result.recordset[0].UserID,'R',count+1);
+            insertUsersToDB(result.recordset[0].UserID,'L',count+1);
+            // setTimeout(()=>{
+            //     console.log('Time R : ', count);
+                
+                
+            // },4);
+            // setTimeout(()=>{
+            //     console.log('Time L : ', count);
+                
+                
+            // },2);
+            
+            
             
         });  
         } 

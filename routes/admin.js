@@ -17,10 +17,9 @@ router.post('/products/upload/:type', async (req, res) => {
         
         req.busboy.on('file', async (fieldName, file, fileName, encoding, mimetype) => {
             try {
-                // if (mimetype != 'text/csv') {
-                //     return res.json({res:true, action: false, error_msg : "Invalid file type. Must be CSV"});
-                // }
-                console.log('Here');
+                if (mimetype != 'text/csv') {
+                    return res.json({res:true, action: false, error_msg : "Invalid file type. Must be CSV"});
+                }
                 
                 file.pipe(csv())
                     .on('data', async (data) => {
@@ -54,16 +53,15 @@ router.post('/products/upload/:type', async (req, res) => {
                                 
                             } else {
                                 productMap.add(data.name);
-                                const productInsertQuery = `IF EXISTS (SELECT 1 FROM products WHERE product_name=@product_name)
-                                BEGIN
-                                  SELECT product_id FROM products WHERE product_name=@product_name
-                                END
-                                ELSE
-                                BEGIN
+                                const productInsertQuery = `
                                   INSERT INTO products (product_name, category, product_description, product_tax, product_image_id, subcategory)
                                  
-                                  VALUES (@product_name, @category, @description, @product_tax, @img, @sub_cat);
-                                END`;
+                                  Select (@product_name, @category, @description, @product_tax, @img, @sub_cat)  WHERE NOT EXISTS (
+                                    SELECT 1
+                                    FROM products
+                                    WHERE product_name = @product_name
+                                  )
+                                `;
                                 request.query(productInsertQuery);
                                
                                   
@@ -113,7 +111,7 @@ router.post('/products/upload/:type', async (req, res) => {
         req.pipe(req.busboy);
     } else if (req.params.type == 'product') {
         req.pipe(req.busboy);
-        const formData = new FormData();
+        let formData = new FormData();
         req.busboy.on('field', (fieldName, fieldValue) => {
             formData.append(fieldName, fieldValue);
         });
@@ -688,7 +686,7 @@ router.post('/reports/:type',async (req,res)=>{
             else if (req.body.type=='products') 
                 query = `select distinct p.id,p.product_id,p.product_status,p.product_name,p.category,p.subcategory,Cast(p.created_at as DATE) as created_at,(select count(item_id) from items where product_id=p.product_id group by product_id) as item_count from products as p`
             else if (req.body.type=='pitems')
-                query = `select * from products as p join items as itm on p.product_id=itm.product_id`;
+                query = `select * from items as itm join products as p on itm.product_id=p.product_id`;
             else 
                 throw new Error('Invalid Type Request');
             const result = await req.app.locals.db.query(query);
