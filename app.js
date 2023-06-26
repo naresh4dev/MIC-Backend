@@ -19,7 +19,7 @@ const busboy = require('connect-busboy');
 const {SendOTP, SendWalletTransacMSG} = require('./connections/send-sms');
 
 const IsNumber = require('./utility/checkForNumber');
-const CalculatePointsToWalletTransfer = require('./utility/ScheduledMLMActions');
+const CalculatePointsToWalletTransfer = require('./utility/scheduledMLMActions');
 
 const app = express();
 const corsOptions = {
