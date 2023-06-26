@@ -9,7 +9,7 @@ async function CalculatePointsToWalletTransfer() {
     const request = new sql.Request(transaction);
     
     const result = await request.execute('UplineToDownLinePointsTransfer');
-    console.log(result.rowsAffected);
+    
     
     
 
