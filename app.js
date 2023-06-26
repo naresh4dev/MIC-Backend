@@ -216,7 +216,7 @@ app.post('/api/sendotp', async (req,res)=>{
     }
 });
 
-CalculatePointsToWalletTransfer();
+
 
 app.listen(process.env.PORT,(err)=>{
     if(!err)
