@@ -13,7 +13,7 @@ router.get('/',(req,res)=>{
         try {
             const request = req.app.locals.db.request();
             request.input('rootName',sql.Char,"tree");
-            const query = `select MLM.MemberID, MLM.ParentID, MLM.LeftChildID, MLM.RightChildID, MLM.LeftReferralPoints, MLM.RightReferralPoints, MLM.TotalReferralPoints,PU.user_name,PU.user_type, PU.user_status,PU.user_position  from BinaryTreeMLM as MLM join PrimeUsers as PU on MLM.MemberID=PU.user_id;`
+            const query = `select MLM.MemberID, MLM.ParentID, MLM.LeftChildID, MLM.RightChildID, MLM.LeftReferralPoints, MLM.RightReferralPoints, MLM.TotalReferralPoints,PU.user_name,PU.user_type, PU.user_status,PU.user_position,MLM.ReferralWeekID  from BinaryTreeMLM as MLM join PrimeUsers as PU on MLM.MemberID=PU.user_id;`
             request.query(query,(queryErr,result)=>{
                 if(!queryErr && result.recordset.length>0) {
                     const json = {tree : result.recordset};
@@ -24,7 +24,7 @@ router.get('/',(req,res)=>{
     
                     // Create the root node in org chart format
     
-                    orgChartJson = {id: rootNode.MemberID, title:rootNode.MemberID ,newMember : false , parent_id : rootNode.ParentID,name : rootNode.user_name ,left_child_id : rootNode.LeftChildID, right_child_id : rootNode.RightChildID, left_referral_points:rootNode.LeftReferralPoints, right_referral_points:rootNode.RightReferralPoints, total_referral_points:rootNode.TotalReferralPoints, user_type : rootNode.user_type ,user_status : rootNode.user_status,children :[]} ;
+                    orgChartJson = {id: rootNode.MemberID, title:rootNode.MemberID ,newMember : false , parent_id : rootNode.ParentID,name : rootNode.user_name ,left_child_id : rootNode.LeftChildID, right_child_id : rootNode.RightChildID, left_referral_points:rootNode.LeftReferralPoints, right_referral_points:rootNode.RightReferralPoints, total_referral_points:rootNode.TotalReferralPoints, user_type : rootNode.user_type ,user_status : rootNode.user_status,referral_week : rootNode.ReferralWeekID,children :[]} ;
                     orgChartJson.children = [];
                     if (rootNode.LeftChildID == null)
                         orgChartJson.children.push({name:'L', title : "New Member" , parentID : rootNode.MemberID, newMember : true});
@@ -45,7 +45,7 @@ router.get('/',(req,res)=>{
                         // Loop through the children and add them to the org chart node
                         children.forEach(child => {
     
-                        let   childNode = { id: child.MemberID, title:child.MemberID ,newMember : false , parent_id : child.ParentID,name : child.user_name ,left_child_id : child.LeftChildID, right_child_id : child.RightChildID, left_referral_points:child.LeftReferralPoints, right_referral_points:child.RightReferralPoints, total_referral_points:child.TotalReferralPoints, user_type : child.user_type, user_status : child.user_status ,user_position : child.user_position,children :[]  };
+                        let   childNode = { id: child.MemberID, title:child.MemberID ,newMember : false , parent_id : child.ParentID,name : child.user_name ,left_child_id : child.LeftChildID, right_child_id : child.RightChildID, left_referral_points:child.LeftReferralPoints, right_referral_points:child.RightReferralPoints, total_referral_points:child.TotalReferralPoints, user_type : child.user_type, user_status : child.user_status ,user_position : child.user_position,referral_week : child.ReferralWeekID,children :[]  };
                             if(child.LeftChildID==null && child.RightChildID==null && child.user_status) {
                                 childNode['children'].push({name:'L', title : "New Member" , parentID : child.MemberID, newMember : true});
                                 childNode['children'].push({name:'R',title : "New Member" ,parentID:child.MemberID,newMember : true});
