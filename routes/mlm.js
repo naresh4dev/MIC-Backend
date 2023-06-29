@@ -13,12 +13,12 @@ router.get('/',(req,res)=>{
         try {
             const request = req.app.locals.db.request();
             request.input('rootName',sql.Char,"tree");
-            const query = `select MLM.MemberID, MLM.ParentID, MLM.LeftChildID, MLM.RightChildID, MLM.LeftReferralPoints, MLM.RightReferralPoints, MLM.TotalReferralPoints,PU.user_name,PU.user_type, PU.user_status  from BinaryTreeMLM as MLM join PrimeUsers as PU on MLM.MemberID=PU.user_id;`
+            const query = `select MLM.MemberID, MLM.ParentID, MLM.LeftChildID, MLM.RightChildID, MLM.LeftReferralPoints, MLM.RightReferralPoints, MLM.TotalReferralPoints,PU.user_name,PU.user_type, PU.user_status,PU.user_position  from BinaryTreeMLM as MLM join PrimeUsers as PU on MLM.MemberID=PU.user_id;`
             request.query(query,(queryErr,result)=>{
-                if(!queryErr ) {
+                if(!queryErr && result.recordset.length>0) {
                     const json = {tree : result.recordset};
                     let orgChartJson = {};
-    
+                    
                     // Find the root node of the tree
                     let rootNode = json.tree.find(node => req.query.memberid=="root"?node.ParentID==null:node.MemberID==req.query.memberid);
     
@@ -26,11 +26,16 @@ router.get('/',(req,res)=>{
     
                     orgChartJson = {id: rootNode.MemberID, title:rootNode.MemberID ,newMember : false , parent_id : rootNode.ParentID,name : rootNode.user_name ,left_child_id : rootNode.LeftChildID, right_child_id : rootNode.RightChildID, left_referral_points:rootNode.LeftReferralPoints, right_referral_points:rootNode.RightReferralPoints, total_referral_points:rootNode.TotalReferralPoints, user_type : rootNode.user_type ,user_status : rootNode.user_status,children :[]} ;
                     orgChartJson.children = [];
-                    // Recursively add children to the root node
+                    if (rootNode.LeftChildID == null)
+                        orgChartJson.children.push({name:'L', title : "New Member" , parentID : rootNode.MemberID, newMember : true});
+                        if (rootNode.RightChildID == null)
+                        orgChartJson.children.push({name:'R', title : "New Member" , parentID : rootNode.MemberID, newMember : true});
+                    
                     addChildrenToNode(orgChartJson, rootNode, json.tree);
     
                     function addChildrenToNode(orgChartNode, treeParentNode, tree) {
-                    // Find the children of the parent node in the tree
+                        
+                        // Find the children of the parent node in the tree
                     let children = tree.filter(node => node.ParentID === treeParentNode.MemberID);
                     
                     if (children.length > 0) {
@@ -40,7 +45,7 @@ router.get('/',(req,res)=>{
                         // Loop through the children and add them to the org chart node
                         children.forEach(child => {
     
-                        let   childNode = { id: child.MemberID, title:child.MemberID ,newMember : false , parent_id : child.ParentID,name : child.user_name ,left_child_id : child.LeftChildID, right_child_id : child.RightChildID, left_referral_points:child.LeftReferralPoints, right_referral_points:child.RightReferralPoints, total_referral_points:child.TotalReferralPoints, user_type : child.user_type, user_status : child.user_status ,children :[]  };
+                        let   childNode = { id: child.MemberID, title:child.MemberID ,newMember : false , parent_id : child.ParentID,name : child.user_name ,left_child_id : child.LeftChildID, right_child_id : child.RightChildID, left_referral_points:child.LeftReferralPoints, right_referral_points:child.RightReferralPoints, total_referral_points:child.TotalReferralPoints, user_type : child.user_type, user_status : child.user_status ,user_position : child.user_position,children :[]  };
                             if(child.LeftChildID==null && child.RightChildID==null && child.user_status) {
                                 childNode['children'].push({name:'L', title : "New Member" , parentID : child.MemberID, newMember : true});
                                 childNode['children'].push({name:'R',title : "New Member" ,parentID:child.MemberID,newMember : true});
@@ -52,11 +57,13 @@ router.get('/',(req,res)=>{
                         // Recursively add children to the child node
                         addChildrenToNode(childNode, child, tree);
                         });
-                    }
+                    } else {
+                        
+                    } 
                     }
                     res.json({ res:true,chart : orgChartJson});
                 } else {
-                    res.json({res:true});
+                    res.json({res:false});
                     console.log(queryErr);
                 }
             });
@@ -119,7 +126,7 @@ router.post('/add',(req,res)=>{
             const now = new Date();
             const currentMonth = (now.getMonth() + 1).toString().padStart(2, '0');
             const currentYear = now.getFullYear().toString().slice(-2);
-            const currentDate = (now.getDate).toString();
+            const currentDate = (now.getDate()).toString();
             const request = req.app.locals.db.request();
             request.input('name',sql.NVarChar,req.body.user_name);
             request.input('password',sql.NVarChar,hash);
@@ -285,5 +292,7 @@ router.post('/dairy/:type',isLoggedIn, async (req,res)=>{
         res.json({res:false, error_msg : 'Invalid Parameters. Check your request URL'});
     }
 });
+
+
 
 module.exports = router;

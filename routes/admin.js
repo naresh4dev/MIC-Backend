@@ -2,6 +2,7 @@ require('dotenv').config();
 const csv = require('csv-parser');
 const router = require('express').Router();
 const busboy = require('busboy');
+const bcrypt = require('bcrypt');
 
 const sql = require('mssql');
 const sqlConnect = require('../connections/sql-connect');
@@ -366,7 +367,7 @@ router.get('/users', (req, res) => {
     if (req.query.type == 'normal') {
         query = "select * from users"
     } else if (req.query.type == 'prime') {
-        query = "select * from PrimeUsers"
+        query = "select * from PrimeUsers as p join PrimeUsersWallet as w on p.user_id=w.prime_user_id"
     } else {
         return res.json({
             res: false,
@@ -439,10 +440,11 @@ router.post('/plan/:mode', (req, res) => {
     if (req.params.mode == 'add') {
         request.input('name',sql.NVarChar, req.body.plan_name);
         request.input('features',sql.NVarChar, req.body.plan_features);
+        request.input('image',sql.NVarChar, req.body.image);
         request.input('points',sql.Int, parseInt(req.body.plan_points));
         request.input('price',sql.Decimal, parseFloat(req.body.plan_price));
-        const query = `Insert into PrimePackagePlan(plan_name, plan_price, plan_features,plan_points)
-                        values(@name,@price,@features,@points);`;
+        const query = `Insert into PrimePackagePlan(plan_name, plan_price, plan_features,plan_points,plan_image)
+                        values(@name,@price,@features,@points,@image);`;
         request.query(query, (queryErr) => {
             if (!queryErr) 
             res.json({
@@ -462,9 +464,10 @@ router.post('/plan/:mode', (req, res) => {
         request.input('plan_id', sql.NVarChar, req.body.plan_id);
         request.input('name',sql.NVarChar, req.body.plan_name);
         request.input('features',sql.NVarChar, req.body.plan_features);
+        request.input('image',sql.NVarChar, req.body.image);
         request.input('points',sql.Int, parseInt(req.body.plan_points));
         request.input('price',sql.Decimal, parseFloat(req.body.plan_price));
-        const query = `Update PrimePackagePlan set plan_name=@name,plan_price=@price,plan_features=@features,plan_points=@points where plan_id=@plan_id`;
+        const query = `Update PrimePackagePlan set plan_name=@name,plan_price=@price,plan_featues=@features,plan_points=@points, plan_image=@image where plan_id=@plan_id`;
         
         request.query(query, (queryErr) => {
             if(!queryErr) {
@@ -558,7 +561,8 @@ router.get('/category',(req,res)=>{
 router.post('/category',(req,res)=>{
     const request = req.app.locals.db.request();
     request.input('name', sql.NVarChar, req.body.name);
-    request.query('Insert Into categories(category_name) values(@name)', (queryErr,result)=>{
+    request.input('image', sql.NVarChar, req.body.image);
+    request.query('Insert Into categories(category_name,category_image) values(@name,@image)', (queryErr,result)=>{
         if(queryErr) {
             res.json({res:true, action : false, errro_msg : 'Internal Server Error'});
             console.log(queryErr);
@@ -686,7 +690,7 @@ router.post('/reports/:type',async (req,res)=>{
             else if (req.body.type=='products') 
                 query = `select distinct p.id,p.product_id,p.product_status,p.product_name,p.category,p.subcategory,Cast(p.created_at as DATE) as created_at,(select count(item_id) from items where product_id=p.product_id group by product_id) as item_count from products as p`
             else if (req.body.type=='pitems')
-                query = `select * from items as itm join products as p on itm.product_id=p.product_id`;
+                query = `select itm.item_id, itm.sale_price, itm  from items as itm join products as p on itm.product_id=p.product_id`;
             else 
                 throw new Error('Invalid Type Request');
             const result = await req.app.locals.db.query(query);
@@ -926,6 +930,17 @@ router.get('/wallet',async (req,res)=>{
             console.log("Error in withdrawal", err);
             res.json({res:false, error_msg : 'Error in withdrawal request'})
         }
+    } else if (req.query.type =='points') {
+        try {
+            const request = req.app.locals.db.request();
+            const getDataQuery = 'Select * from PointsToWallet as p join PrimeUsers as u on p.user_id=u.user_id';
+            const result = await request.query(getDataQuery);
+            res.json({res:true,members : result.recordset});
+        } catch (err) {console.log("Error in withdrawal", err);
+            res.json({res:false, error_msg : 'Error in Points To Wallet request'})
+        }
+    } else {
+        res.json({res:false, error_msg : "Invalid Query Request"})
     }
 });
 
@@ -989,5 +1004,202 @@ router.post('/master/:mode', async (req,res)=>{
     res.json({res:false, error_msg : 'Invalid Params'})
   }
 })
+
+router.post('/tree/add',(req,res)=>{
+    function updateReferralPoints(memberID, parentID) {
+        // Update the referral points for the parent
+        const request = req.app.locals.db.request();
+        request.input('member_id',sql.NVarChar, memberID);
+        request.input('parent_id',sql.NVarChar, parentID);
+        const query = ```SET NOCOUNT ON;
+        DECLARE @NewMemberID NVARCHAR(50) = @member_id;
+        DECLARE @NewMemberParentID NVARCHAR(50) = @parent_id;
+        DECLARE @AncestorID NVARCHAR(50) = @NewMemberParentID;
+        DECLARE @TempMemberID NVARCHAR(50) = @NewMemberID;
+        DECLARE @ReferralPoints INT = (select p.plan_points from PrimePackagePlan as p join PrimeUsers as users on p.plan_id=users.prime_plan_id where users.user_id=@NewMemberID);
+        UPDATE MLM
+        SET MLM.HasAnyChildReferred=CASE WHEN MLM.LeftChildID=@NewMemberParentID OR MLM.RightChildID=@NewMemberParentID THEN 1 ELSE MLM.HasAnyChildReferred END
+        FROM BinaryTreeMLM AS MLM 
+        JOIN PrimeUsers as PU ON MLM.MemberID=PU.user_id
+        WHERE MLM.MemberID=(Select ParentID FROM BinaryTreeMLM WHERE MemberID = @NewMemberParentID);
+        -- Update Referral points for all users
+        WHILE @AncestorID is not NULL
+        BEGIN 
+            UPDATE BinaryTreeMLM
+            SET 
+            LeftReferralPoints = CASE WHEN LeftChildID=@TempMemberID THEN LeftReferralPoints+@ReferralPoints ELSE LeftReferralPoints END,
+            RightReferralPoints = CASE WHEN RightChildID=@TempMemberID  THEN RightReferralPoints+@ReferralPoints ELSE RightReferralPoints END,
+            TotalReferralPoints = CASE WHEN LeftChildID=@TempMemberID or RightChildID=@TempMemberID  THEN TotalReferralPoints+@ReferralPoints ELSE TotalReferralPoints END
+            WHERE MemberID=@AncestorID;
+            SET @TempMemberID = @AncestorID;
+            SET @AncestorID=(Select ParentID from BinaryTreeMLM where MemberID=@AncestorID);
+        END```;
+        request.query(query);
+    }
+    console.log(req.body);
+    bcrypt.hash(req.body.password, 10, (err,hash)=>{ 
+        if(err) {
+            console.log(err);
+            res.json({res:false});
+        } else {
+            const now = new Date();
+           
+            const currentMonth = (now.getMonth() + 1).toString().padStart(2, '0');
+            const currentYear = now.getFullYear().toString().slice(-2);
+            const currentDate = (now.getDate()).toString();
+            console.log(currentDate);
+            const request = req.app.locals.db.request();
+            request.input('name',sql.NVarChar,req.body.name);
+            request.input('password',sql.NVarChar,hash);
+            request.input('year',sql.NChar,currentYear);
+            request.input('month',sql.NChar,currentMonth);
+            request.input('date',sql.NChar,currentDate);
+            request.input('type',sql.VarChar,req.body.userType);
+            request.input('parentID',sql.NVarChar,req.body.parentID);
+            request.input('position',sql.NChar,req.body.position);
+            request.input('plan_id',sql.NVarChar,req.body.planID);
+            request.input('is_active',sql.Bit,1);
+            request.input('sponsor_id',sql.VarChar,'ADMIN');
+            request.input('dob',sql.NVarChar,req.body.dob);
+            request.input('panNo',sql.NVarChar,req.body.panNo);
+            request.input('adhaarNo',sql.NVarChar,req.body.aadharNo);
+            request.input('address',sql.NVarChar,req.body.address);
+            request.input('guardianName',sql.NVarChar,req.body.nomineName);
+            request.input('district',sql.NVarChar,req.body.district);
+            request.input('pinCode',sql.NVarChar,req.body.pincode);
+            request.input('state',sql.NVarChar,req.body.state);
+            request.input('email',sql.NVarChar,req.body.email);
+            request.input('nearestCity',sql.NVarChar,req.body.nearestCity);
+            request.input('mobileno',sql.NVarChar,req.body.phone);
+            request.input('gender',sql.NVarChar,req.body.gender);
+            const insertQuery = `
+            DECLARE @flag bit ;
+            SET @flag = 0;
+            IF @position='L' and (Select LeftChildID from BinaryTreeMLM where MemberID=@parentID) is not null 
+            BEGIN 
+            SET @flag=1; 
+            END 
+            IF @position='R' and (select RightChildID from BinaryTreeMLM where MemberID=@parentID) is not null 
+            BEGIN 
+            SET @flag = 1; 
+            END  
+            IF @flag=0 
+            BEGIN 
+            Insert into PrimeUsers(
+                user_name,
+                user_parent_id,
+                registered_month,
+                registered_year,
+                registered_date,
+                user_type,
+                user_password,
+                user_position,
+                user_status,
+                user_sponsor_id,
+                prime_plan_id,
+                user_dob,
+                user_pan_no,
+                user_aadhar_no,
+                user_address,
+                user_guardian_name,
+                user_mobile_number,
+                user_email,
+                user_state,
+                user_district,
+                user_pincode,
+                user_gender,
+                user_nearest_city
+                ) 
+            values (
+                @name,
+                @parentID,
+                @month,
+                @year,
+                @date,
+                @type,
+                @password,
+                @position,
+                @is_active,
+                @sponsor_id,
+                @plan_id,
+                @dob,
+                @panNo,
+                @adhaarNo,
+                @address,
+                @guardianName,
+                @mobileno,
+                @email,
+                @state,
+                @district,
+                @pinCode,
+                @gender,
+                @nearestCity
+                );
+            END
+            
+            `
+            
+            request.query(insertQuery,(queryErr,result)=>{
+                if(!queryErr) {
+                    
+                    res.json({res:true, action : true});
+                } else {
+                    console.log(queryErr);
+                    res.json({res:false, action : false});
+                }
+            });  
+        }
+    });
+    
+});
+
+router.get('/mlmactions',(req,res)=>{
+    const request = req.app.locals.db.request();
+    request.query('Select TOP 1 * from points_table',(queryErr, result)=>{
+        if(!queryErr) {
+            res.json({res:true,data:result.recordset[0]})
+        } else {
+            res.json({res:false});
+            console.log(queryErr);
+        }
+    });
+});
+
+router.post('/mlmactions',(req,res)=>{
+try {
+    const request = req.app.locals.db.request();
+    request.input('value',sql.Decimal,parseFloat(req.body.point_value));
+    request.input('period',sql.Int,parseInt(req.body.period));
+    request.input('pv_limit',sql.Decimal,parseFloat(req.body.pv_limit));
+    request.input('withdraw_limit',sql.Decimal,parseFloat(req.body.withdraw_limit));
+    request.input('point_share',sql.Decimal,parseFloat(req.body.point_share));
+
+
+    const insertQuery = 'Update points_table set point_value=@value, ceiling_pv=@pv_limit, ceiling_amount=@withdraw_limit, referral_period=@period, upline_points=@point_share';
+    request.query(insertQuery,(queryErr)=>{
+        if(!queryErr) {
+            res.json({res:true});
+        } else {
+            console.log(queryErr);
+            res.json({res:false, error_msg : 'Internal Server Error'});
+        }
+    })
+} catch (err) {
+    console.log(err);
+    res.json({res:false, error_msg : 'Internal Server Error'});   
+}
+});
+
+router.get('/pointstowallet', async (req,res)=>{
+    try {
+        const request = req.app.locals.db.request();
+        const run1 = await request.query(' EXEC UplineToDownLinePointsTransfer');
+        const run2 = await request.query(' EXEC weeklyMLMCalculations');
+        res.json({res:true});
+    } catch (err) {
+        console.log(err);
+        res.json({res:false});
+    }
+});
 
 module.exports = router;
