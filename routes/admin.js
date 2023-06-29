@@ -1168,11 +1168,12 @@ router.get('/mlmactions',(req,res)=>{
 router.post('/mlmactions',(req,res)=>{
 try {
     const request = req.app.locals.db.request();
+    console.log(parseFloat(req.body.point_share));
     request.input('value',sql.Decimal,parseFloat(req.body.point_value));
     request.input('period',sql.Int,parseInt(req.body.period));
     request.input('pv_limit',sql.Decimal,parseFloat(req.body.pv_limit));
     request.input('withdraw_limit',sql.Decimal,parseFloat(req.body.withdraw_limit));
-    request.input('point_share',sql.Decimal,parseFloat(req.body.point_share));
+    request.input('point_share',sql.Decimal(10,2),parseFloat(req.body.point_share));
 
 
     const insertQuery = 'Update points_table set point_value=@value, ceiling_pv=@pv_limit, ceiling_amount=@withdraw_limit, referral_period=@period, upline_points=@point_share';
