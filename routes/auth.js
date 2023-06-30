@@ -127,7 +127,7 @@ router.post('/register', (req,res)=>{
         lname : req.body.lname,
         username : req.body.username,
         email : req.body.email,
-        phone : req.body.mobile,         
+        phone : req.body.phone,         
     }
     if (!IsNumber(user.phone))
         return res.json({res:false, error_msg : "Invalid mobile number" });
