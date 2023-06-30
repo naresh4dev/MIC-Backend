@@ -92,6 +92,7 @@ router.post('/',(req,res)=>{
         res.header('Access-Control-Allow-Credentials', 'true');
         const request = req.app.locals.db.request();
         request.input('user_id',sql.NVarChar, req.user.id);
+       
         if(req.user.type =='prime') {
             request.query('select p.user_id, p.user_name, p.user_email, p.user_status, p.user_type,pw.wallet_amount, pw.discount_coupon from PrimeUsers as p join PrimeUsersWallet as pw on p.user_id=pw.prime_user_id where p.user_id=@user_id',(queryErr,result)=>{
                 if(!queryErr) {

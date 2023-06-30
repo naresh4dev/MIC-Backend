@@ -492,6 +492,12 @@ router.post('/cart/:cart_action',(req,res,next)=>{
     request.input('user_id',sql.NVarChar,req.user.id);
     request.query('select cart.cart_id, item.item_id, item.quantity,itd.sale_price,itd.regular_price, itd.prime_price, itd.ministore_min_qty, itd.item_weight, itd.item_stock, itd.ministore_product_bonus,p.product_id ,p.product_name, p.product_tax, p.product_image_id,p.category,i.image_data from CartTable as cart join CartItems as item on  cart.cart_id=item.cart_id join items as itd on itd.item_id=item.item_id join products as p on p.product_id=itd.product_id join Images as i on p.product_image_id=i.image_id where cart.user_id=@user_id;',(queryErr,result)=>{
       if(!queryErr) {
+        const cartCalculation = {
+          total_sale_price : 0,
+          total_prime_price : 0,
+          total_items : 0,
+          
+        }
         res.json({res:true, cart : result.recordset, action : true});
       } else {
         console.log(queryErr);

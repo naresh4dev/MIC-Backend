@@ -36,17 +36,19 @@ app.use((req,res,next)=>{
     next()
 })
 app.use(bodyParser.urlencoded({extended : false}));
+app.use(cookieParser())
 app.use(session({
     secret :process.env.SESSION_SECRET,
-    resave : true,
+    resave : false,
     cookie : {
         maxAge: 30 * 24 * 60 * 60 * 1000,
         httpOnly : false,
         secure : true,
+        sameSite : 'none'
     },
     saveUninitialized: false,
 }));
-app.use(cookieParser())
+
 app.use(passport.initialize());
 app.use(passport.session());
 function addUserToRequest(req, res, next) {

@@ -6,9 +6,7 @@ const bcrypt = require('bcrypt');
 
 const sql = require('mssql');
 const sqlConnect = require('../connections/sql-connect');
-const {
-    error
-} = require('neo4j-driver');
+
 
 router.post('/products/upload/:type', async (req, res) => {
     if (req.params.type == 'bulk') {
@@ -106,71 +104,79 @@ router.post('/products/upload/:type', async (req, res) => {
             });
             req.busboy.on("finish", async () => {
                 try {
-                    
+                    const connection = await sqlConnect();
+                    const request =  new sql.Request(connection);
                     const table = new sql.Table('products');
                     table.create = false;
-                    table.columns.add('product_name', sql.NVarChar(100), {
+                    table.columns.add('product_name', sql.NVarChar(150), {
                         nullable: false
                     });
-                    table.columns.add('category', sql.NVarChar(100), {
-                        nullable: false
+                    table.columns.add('category', sql.NVarChar(60), {
+                        nullable: true
                     });
-                    table.columns.add('product_description', sql.NVarChar(100), {
-                        nullable: false
+                    table.columns.add('product_description', sql.NVarChar(sql.MAX), {
+                        nullable: true
                     });
                     table.columns.add('product_tax', sql.Decimal(10, 2), {
-                        nullable: false
+                        nullable: true
                     });
                     table.columns.add('product_image_id', sql.NVarChar(100), {
-                        nullable: false
+                        nullable: true
                     });
                     table.columns.add('subcategory', sql.NVarChar(100), {
-                        nullable: false
+                        nullable: true
                     });
                     table.columns.add('is_mapped', sql.Bit, {
-                        nullable: false
+                        nullable: true
                     });
                     const itemsTable = new sql.Table('items');
                     itemsTable.create = false;
                     itemsTable.columns.add('sale_price', sql.Decimal(10, 2), {
-                        nullable: false
+                        nullable: true
                     });
                     itemsTable.columns.add('regular_price', sql.Decimal(10, 2), {
-                        nullable: false
+                        nullable: true
                     });
                     itemsTable.columns.add('prime_price', sql.Decimal(10, 2), {
-                        nullable: false
+                        nullable: true
                     });
                     itemsTable.columns.add('ministore_min_qty', sql.Int, {
-                        nullable: false
+                        nullable: true
                     });
                     itemsTable.columns.add('item_stock', sql.Int, {
-                        nullable: false
+                        nullable: true
                     });
                     itemsTable.columns.add('ministore_product_bonus', sql.Decimal(10, 2), {
-                        nullable: false
+                        nullable: true
                     });
                     itemsTable.columns.add('item_weight', sql.NVarChar(100), {
-                        nullable: false
+                        nullable: true
                     });
                     itemsTable.columns.add('eligiblity_to_redeem_discount_coupon', sql.Int, {
-                        nullable: false
+                        nullable: true
                     });
                     itemsTable.columns.add('item_product_name', sql.NVarChar(200), {
-                        nullable: false
+                        nullable: true
+                    });
+                    itemsTable.columns.add('is_mapped', sql.Bit, {
+                        nullable: true
                     });
                     productsArray.forEach(row => {
-                        if (!productSet.has(row.name)) {
+                        if (!productSet.has(row.name.toLowerCase())) {
+                            
                             table.rows.add(
                                 row.name,
                                 row.category_name,
                                 row.description,
+                                parseFloat(row.product_tax),
+                                row.image_id,
                                 row.sub_category,
-                                row.product_tax,
-                                data.image_id
+                                0
                             );
-                        }
-                        productSet.add(row.name);
+                        } else {
+                            console.log(`Skipped insertion for product: ${row.name}`);
+                          }
+                        productSet.add(row.name.toLowerCase())
                         itemsTable.rows.add(
                             parseFloat(row.sale_price),
                             parseFloat(row.regular_price),
@@ -178,15 +184,16 @@ router.post('/products/upload/:type', async (req, res) => {
                             parseInt(row.minimum_qty),
                             parseInt(row.item_stock),
                             parseFloat(row.ministore_bonus),
-                            row.item_weight,
+                            row.weight,
                             parseInt(row.redeem_points),
-                            row.name
+                            row.name,
+                            0
                         );
                     });
-                    const connection = await sqlConnect();
-                    const request =  new sql.Request(connection);
-                    // await request.bulk(table);
-                    // await request.bulk(itemsTable);
+                    
+                    await request.bulk(table);
+                    await request.bulk(itemsTable);
+                    await request.query('EXEC ProcessUnmappedProducts; EXEC ProcessUnmappedItems')
                     res.json({
                         res: true,
                         action: true,
@@ -194,7 +201,7 @@ router.post('/products/upload/:type', async (req, res) => {
                     });
                 } catch (err) {
                     
-                    console.log(error);
+                    console.log(err);
                     res.status(500).json({
                         res: false,
                         action: false,
