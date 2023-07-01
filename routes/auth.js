@@ -56,7 +56,13 @@ router.post('/signin', async (req,res,next)=>{
 },(req,res)=>{
     res.header('Access-Control-Allow-Credentials', 'true');
     const request = req.app.locals.db.request();
-    
+    res.cookie('connect.sid',req.sessionID,{
+        signed:true,
+        maxAge: 30 * 24 * 60 * 60 * 1000, 
+        httpOnly: false, // Whether the cookie can be accessed by client-side JavaScript
+        secure: true, // Only send the cookie over HTTPS
+        sameSite: 'none' // Allow the cookie to be sent in cross-site requests
+      });
     request.input('user_id',sql.NVarChar,req.user.id);
     if (req.user.type == 'user') {
         request.query(`select user_id, username, fname,lname,user_email from users where user_id=@user_id`,(queryErr,result)=>{
@@ -79,7 +85,6 @@ router.post('/signin', async (req,res,next)=>{
             }
         });
     }
-    
 
    
 });

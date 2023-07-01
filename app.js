@@ -36,7 +36,7 @@ app.use((req,res,next)=>{
     next()
 })
 app.use(bodyParser.urlencoded({extended : false}));
-app.use(cookieParser())
+app.use(cookieParser(process.env.SESSION_SECRET))
 app.use(session({
     secret :process.env.SESSION_SECRET,
     resave : false,
