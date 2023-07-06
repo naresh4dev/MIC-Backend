@@ -363,7 +363,7 @@ router.post('/products/upload/:type', async (req, res) => {
 router.get('/products/:mode', (req, res) => {
     const request = req.app.locals.db.request();
     if (req.params.mode == 'get_all') {
-        const productQuery = `select distinct p.id,p.product_id,p.product_status,p.product_name,p.category,p.subcategory,(select count(item_id) from items where product_id=p.product_id group by product_id) as item_count from products as p`;
+        const productQuery = `select distinct p.id,p.product_id,p.product_status,p.product_name,p.category,p.subcategory,c.category_name,sc.sub_category_name,(select count(item_id) from items where product_id=p.product_id group by product_id) as item_count from products as p join categories as c on c.category_id=p.category join Sub_Category as sc on sc.sub_category_id=p.subcategory`;
         request.query(productQuery, (queryErr, result) => {
             if (!queryErr) {
                 res.json({
@@ -373,7 +373,7 @@ router.get('/products/:mode', (req, res) => {
             } else {
                 console.log(queryErr);
                 res.json({
-                    res: true
+                    res: false
                 });
             }
         });
@@ -709,6 +709,22 @@ router.get('/category', (req, res) => {
     })
 });
 
+router.get('/subcategory',(req,res)=>{
+    req.app.locals.db.query('select * from Sub_Category', (queryErr, result) => {
+        if (!queryErr) {
+            res.json({
+                res: true,
+                categories: result.recordset
+            });
+        } else {
+            res.json({
+                res: false,
+                error_msg: 'Internal Server Error'
+            });
+        }
+    })
+});
+
 router.post('/category', (req, res) => {
     const request = req.app.locals.db.request();
     request.input('name', sql.NVarChar, req.body.name);
@@ -729,6 +745,9 @@ router.post('/category', (req, res) => {
         }
     });
 });
+
+
+
 
 
 function generateSubQueryOnFrequency(interval, tableName, date = null, month = null, year = null) {
