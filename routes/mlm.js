@@ -229,10 +229,10 @@ router.get('/wallet',(req,res,next)=>{
         res.sendStatus(403);
 },(req,res)=>{
     const request = req.app.locals.db.request();
-    request.input('user_id', sq.NChar,req.user.id);
+    request.input('user_id', sql.NChar,req.user.id);
     request.query("Select * from PrimeUsersWallet where prime_user_id=@user_id",(queryErr,result)=>{
         if(!queryErr) {
-            res.json({res:true, wallet_balance : result.recordset[0].wallet_balance, discount_coupon : result.recordset[0].discount_coupon});
+            res.json({res:true, wallet_amount : result.recordset[0].wallet_amount, discount_coupon : result.recordset[0].discount_coupon});
         } else {
             res.json({res:false});
         }

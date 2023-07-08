@@ -218,7 +218,9 @@ app.post('/api/sendotp', async (req,res)=>{
     }
 });
 
-
+app.all('*',(req,res)=>{
+    res.json({res:false, error_msg : 'Invalid request params'});
+});
 
 app.listen(process.env.PORT,(err)=>{
     if(!err)

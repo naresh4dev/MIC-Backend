@@ -128,7 +128,10 @@ router.post('/withdraw',async (req,res)=>{
 });
 
 router.get('/transactions', isLoggedIn, (req,res)=>{
-    const transactionQuery = `
+    try {
+        let transactionQuery;
+        if (req.query.type=='w2w') {
+             transactionQuery = `
         Select 
             wallet_transaction_id, 
             transaction_date, 
@@ -151,17 +154,25 @@ router.get('/transactions', isLoggedIn, (req,res)=>{
         select withdraw_request_id, withdraw_date,withdraw_month, withdraw_year, created_at, amount, withdraw_status, 'Withdraw' as method, 'REQ' as mode from WithdrawalRequests where user_id =@id
 
         order by created_at DESC;`
-    const request = req.app.locals.db.request();
-    request.input('id',sql.NVarChar,req.user.id);
-    request.query(transactionQuery, (err, transactionQueryResult)=>{
-        if(!err) {
-            res.json({res:true, transactions : transactionQueryResult.recordset});
+        } else if (req.query.type == 'p2w') {
+            transactionQuery = `SELECT * from PointsToWallet where user_id=@user_id order by created_at DESC;`;
         } else {
-            console.error(err);
-            res.json({res:false, error_msg : 'Internal Server Error'});
+            return res.json({res:false, error_msg : 'Invalid request query'});
         }
-    });
-});
+        const request = req.app.locals.db.request();
+        request.input('id',sql.NVarChar,req.user.id);
+        request.query(transactionQuery, (err, transactionQueryResult)=>{
+            if(!err) {
+                res.json({res:true, transactions : transactionQueryResult.recordset});
+            } else {
+                console.error(err);
+                res.json({res:false, error_msg : 'Internal Server Error'});
+            }
+        });
+    } catch(err) {
 
+    }
+    
+});
 
 module.exports = router;

@@ -1,6 +1,8 @@
 const fs = require('fs');
 const csv = require('csv-parser');
 const sql = require('mssql');
+const CalculateCart = require('../utility/calculateCart');
+const isLoggedIn = require('../utility/isLoggedIn');
 const router = require('express').Router();
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 const csvWrite = createCsvWriter({
@@ -464,15 +466,7 @@ router.get('/home',(req,res)=>{
 
 
 
-router.post('/cart/:cart_action',(req,res,next)=>{
-  if(req.isAuthenticated()) {
-    next();
-  } else {
-
-    res.json({res:true, auth : false});
-  }
-},(req,res)=>{
-  console.log(req.body);
+router.post('/cart/:cart_action',isLoggedIn,(req,res)=>{
   const request = req.app.locals.db.request();
   if (req.params.cart_action == 'add') {
     
@@ -490,15 +484,10 @@ router.post('/cart/:cart_action',(req,res,next)=>{
   } else if (req.params.cart_action == 'get') {
     
     request.input('user_id',sql.NVarChar,req.user.id);
-    request.query('select cart.cart_id, item.item_id, item.quantity,itd.sale_price,itd.regular_price, itd.prime_price, itd.ministore_min_qty, itd.item_weight, itd.item_stock, itd.ministore_product_bonus,p.product_id ,p.product_name, p.product_tax, p.product_image_id,p.category,i.image_data from CartTable as cart join CartItems as item on  cart.cart_id=item.cart_id join items as itd on itd.item_id=item.item_id join products as p on p.product_id=itd.product_id join Images as i on p.product_image_id=i.image_id where cart.user_id=@user_id;',(queryErr,result)=>{
+    request.query('select cart.cart_id, item.item_id, item.quantity,itd.sale_price,itd.regular_price, itd.prime_price, itd.ministore_min_qty, itd.item_weight, itd.item_stock, itd.eligiblity_to_redeem_discount_coupon ,itd.ministore_product_bonus,p.product_id ,p.product_name, p.product_tax, p.product_image_id,p.category,i.image_data from CartTable as cart join CartItems as item on  cart.cart_id=item.cart_id join items as itd on itd.item_id=item.item_id join products as p on p.product_id=itd.product_id join Images as i on p.product_image_id=i.image_id where cart.user_id=@user_id;',(queryErr,result)=>{
       if(!queryErr) {
-        const cartCalculation = {
-          total_sale_price : 0,
-          total_prime_price : 0,
-          total_items : 0,
-          
-        }
-        res.json({res:true, cart : result.recordset, action : true});
+        const calculations = CalculateCart(req.user.type, result.recordset,false,undefined,undefined);
+        res.json({res:true, cart : result.recordset,cartValue : calculations,action : true});
       } else {
         console.log(queryErr);
         res.json({res:false});
@@ -508,7 +497,8 @@ router.post('/cart/:cart_action',(req,res,next)=>{
     request.input('item_id',sql.NVarChar,req.body.item_id);
     request.input('user_id',sql.NVarChar,req.user.id);
     request.input('qty',sql.Int,req.body.quantity);
-    request.query('update item set quantity=@qty from CartItems as item join CartTable as c on item.cart_id=c.cart_id  where c.user_id=@user_id and item_id=@item_id',(queryErr,result)=>{
+    console.log(req.body);
+    request.query('update item set quantity=@qty from CartItems as item join CartTable as c on item.cart_id=c.cart_id  where c.user_id=@user_id and item_id=@item_id',(queryErr)=>{
       if(!queryErr) {
         res.json({res:true, action:true});
       } else {
@@ -519,7 +509,7 @@ router.post('/cart/:cart_action',(req,res,next)=>{
   } else if (req.params.cart_action == 'remove') {
     request.input('item_id',sql.NVarChar,req.body.item_id);
     request.input('user_id',sql.NVarChar,req.user.id);
-    request.query('delete item  from CartItems as item join CartTable as cart on item.cart_id=cart.cart_id where cart.user_id=@user_id and item.item_id=@item_id',(queryErr,result)=>{
+    request.query('delete item  from CartItems as item join CartTable as cart on item.cart_id=cart.cart_id where cart.user_id=@user_id and item.item_id=@item_id',(queryErr)=>{
       if(!queryErr) {
         res.json({res:true,action : true});
       } else {
@@ -570,7 +560,10 @@ router.post('/wishlist/:action',(req,res)=>{
 
 router.get('/category',(req,res)=>{
   req.app.locals.db.query('select category_id,category_name from  categories',(queryErr,result)=>{
-    res.json({res:true,data:result.recordset});
+    if (!queryErr) 
+    return res.json({res:true,data:result.recordset});
+    console.log(queryErr);
+    res.json({res:false});
   });
 });
 
