@@ -28,7 +28,7 @@ router.get('/',(req,res)=>{
                     orgChartJson.children = [];
                     if (rootNode.LeftChildID == null)
                         orgChartJson.children.push({name:'L', title : "New Member" , parentID : rootNode.MemberID, newMember : true});
-                        if (rootNode.RightChildID == null)
+                    if (rootNode.RightChildID == null)
                         orgChartJson.children.push({name:'R', title : "New Member" , parentID : rootNode.MemberID, newMember : true});
                     
                     addChildrenToNode(orgChartJson, rootNode, json.tree);
@@ -133,7 +133,7 @@ router.post('/add',(req,res)=>{
             request.input('year',sql.NChar,currentYear);
             request.input('month',sql.NChar,currentMonth);
             request.input('date',sql.NChar,currentDate);
-            request.input('type',sql.VarChar,req.body.user_type);
+            request.input('type',sql.VarChar,'PRIME');
             request.input('parentID',sql.NVarChar,req.body.parentID);
             request.input('position',sql.NChar,req.body.position);
             request.input('plan_id',sql.NVarChar,req.body.plan_id);
@@ -255,15 +255,18 @@ router.get('/dairy',isLoggedIn, async (req,res)=>{
 
 router.post('/dairy/:type',isLoggedIn, async (req,res)=>{
     const type = req.params.type;
+    // console.log(req.body);
+    
+    
     if (type == 'new') {
         try {
-            if (!IsNumber(req.body?.member_details?.member_phone)) {
+            if (!IsNumber(req.body?.member_phone)) {
                 throw new Error('Invalid Mobile Number');
             }
             const request = req.app.locals.db.request();
-            request.input('name', sql.NVarChar, req.body.member_details.member_name);
-            request.input('email', sql.NVarChar, req.body.member_details.member_email);
-            request.input('phone', sql.Char, req.body.member_details.member_phone);
+            request.input('name', sql.NVarChar, req.body.member_name);
+            request.input('email', sql.NVarChar, req.body.member_email);
+            request.input('phone', sql.Char, req.body.member_phone);
             request.input('id', sql.NVarChar, req.user.id);
 
             const insertQuery = 'Insert into MLMDairy(member_name,member_email,member_phone,member_sponsor_id) values(@name,@email,@phone,@id)';

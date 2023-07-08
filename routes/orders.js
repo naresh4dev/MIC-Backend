@@ -5,7 +5,7 @@ const bodyParser = require('body-parser');
 const sql = require('mssql');
 const { SendOrderConfirmationMSG } = require('../connections/send-sms');
 const isLoggedIn = require('../utility/isLoggedIn');
-
+const CalculateCart = require('../utility/calculateCart');
 
 
 router.post('/createorder',isLoggedIn,async (req,res)=>{
@@ -83,7 +83,7 @@ router.post('/createorder',isLoggedIn,async (req,res)=>{
     }
 });
 
-router.post('/calculate',isLoggedIn, async (req,res)=>{
+router.get('/calculate',isLoggedIn, async (req,res)=>{
     try {
         const request = req.app.locals.db.request();
         request.input('user_id',sql.NVarChar,req.user.id);
