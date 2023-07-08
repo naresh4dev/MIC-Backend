@@ -59,11 +59,11 @@ router.post('/createorder',isLoggedIn,async (req,res)=>{
                 }
             });
         } else if (req.query.order_type=='wallet') {
-            const checkBalanceQuery = `Select wallet_balance from PrimeUsersWallet where prime_user_id=@user_id`;
+            const checkBalanceQuery = `Select wallet_amount from PrimeUsersWallet where prime_user_id=@user_id`;
             const checkBalance = await request(checkBalanceQuery);
             if(checkBalance.recordset[0].wallet_balance < calculations.overallTotal)
                 throw new Error('Insufficient Wallet Balance');
-            const updateWalletQuery = 'Update PrimeUsersWallet set wallet_balance=wallet_balance-@total_amount where prime_user_id=@user_id';
+            const updateWalletQuery = 'Update PrimeUsersWallet set wallet_amount=wallet_amount-@total_amount where prime_user_id=@user_id';
             const updateWallet = await request.query(updateWalletQuery);
             if(updateWallet.rowsAffected[0]==1) {
                 request.input('pay_mode',sql.VarChar, 'wallet');
