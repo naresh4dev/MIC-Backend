@@ -82,6 +82,9 @@ passport.deserializeUser(function(user, done) {
             trustServerCertificate : true
         }
     }
+    if (user.id === process.env.ADMIN_USER) {
+        return done(null, {id : process.env.ADMIN_USER, role : user.role});
+    }
     sql.connect(config, (err)=>{
         if(err) {
             done(err,false);
@@ -92,17 +95,14 @@ passport.deserializeUser(function(user, done) {
         const query = `select user_id from ${user.type=='prime'?'PrimeUsers':'users'} where user_id=@user_id`;
         request.query(query,(queryErr,result)=>{
             if(queryErr) {
-                return done(queryErr,false);
                 console.log(queryErr)
+                return done(queryErr,false);
             } else {
-               return  done(null, {id : result.recordset[0].user_id,type : 'user'});
+               return  done(null, {id : result.recordset[0].user_id, type : user.type, role : user.role});
             }
-            
-        })
-    })
-    
-  });
-
+        });
+    });
+});
 
 passport.use('login',new LocalStrategy({passReqToCallback:true,usernameField: 'email',
 passwordField: 'password'},function (req ,username,password,cb){
@@ -122,7 +122,7 @@ passwordField: 'password'},function (req ,username,password,cb){
                 bcrypt.compare(password,result.recordset[0].password,(compareErr,compareRes)=>{
                     if(compareErr) return cb(compareErr,false)
                     else if(!compareRes) return cb(null,false)
-                    else return cb(null, {id : result.recordset[0].user_id, type: 'user'});
+                    else return cb(null, {id : result.recordset[0].user_id, type: 'user', role :"user"});
                 });
             }
         }
@@ -145,12 +145,22 @@ passwordField: 'password'},function (req ,username,password,cb){
                 bcrypt.compare(password,result.recordset[0].user_password,(compareErr,compareRes)=>{
                     if(compareErr) return cb(compareErr,false)
                     else if(!compareRes) return cb(null,false)
-                    else return cb(null, {id : result.recordset[0].user_id , type : "prime"});
+                    else return cb(null, {id : result.recordset[0].user_id , type : "prime", role : "user" });
                 });
             }
         }
     });
 }));
+
+passport.use('admin', new LocalStrategy({passReqToCallback : true, usernameField : 'username', passwordField : 'password'}, (req,username,password, cb)=>{
+    if (username == process.env.ADMIN_USER && password == process.env.ADMIN_PASSWORD) {
+        return cb(null, {id : process.env.ADMIN_USER, role : 'admin'});
+    } else {
+        return cb(null, false, {message : 'Invalid Credentials'});
+    }
+}));
+
+
 
 const config = {
     user : process.env.SQL_USER,
@@ -217,10 +227,15 @@ app.post('/api/sendotp', async (req,res)=>{
         res.json({res : false, error_msg : "Internal Server Error"});
     }
 });
+app.post('/url',(req,res)=>{
+    console.log(req.body);
+})
 
 app.all('*',(req,res)=>{
     res.json({res:false, error_msg : 'Invalid request params'});
 });
+
+
 
 app.listen(process.env.PORT,(err)=>{
     if(!err)

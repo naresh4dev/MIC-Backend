@@ -155,7 +155,7 @@ router.get('/transactions', isLoggedIn, (req,res)=>{
 
         order by created_at DESC;`
         } else if (req.query.type == 'p2w') {
-            transactionQuery = `SELECT * from PointsToWallet where user_id=@user_id order by created_at DESC;`;
+            transactionQuery = `SELECT * from PointsToWallet where user_id=@id order by created_at DESC;`;
         } else {
             return res.json({res:false, error_msg : 'Invalid request query'});
         }

@@ -3,7 +3,6 @@ const csv = require('csv-parser');
 const router = require('express').Router();
 const busboy = require('busboy');
 const bcrypt = require('bcrypt');
-
 const sql = require('mssql');
 const sqlConnect = require('../connections/sql-connect');
 
@@ -745,10 +744,6 @@ router.post('/category', (req, res) => {
         }
     });
 });
-
-
-
-
 
 function generateSubQueryOnFrequency(interval, tableName, date = null, month = null, year = null) {
     let subquery = '';
@@ -1511,6 +1506,52 @@ router.get('/pointstowallet', async (req, res) => {
         res.json({
             res: false
         });
+    }
+});
+
+router.get('/cms', async (req,res)=>{
+    try {
+        const result = await req.app.locals.db.query('select * from CMS');
+        let data = {
+            con1 : result.recordset[0].HomeCon.split(";"),
+            con2 : result.recordset[0].Con2Cat.split(";"),
+            con3 : result.recordset[0].Con3Sp.split(";"),
+            con4 : result.recordset[0].Con4Offers.split(";"),
+            con6 : [],
+        }
+        
+        res.json({res:true, data : result.recordset});
+    } catch(err){
+        res.json({res:false, message_err : err.msg});
+        console.error(err);
+    }
+});
+
+router.post('/cms/:con', async (req,res)=>{
+    try {
+        let updateQuery;
+        if (req.params.con == 1) {
+            updateQuery = 'update CMS HomeCon=@data';
+        } else if (req.params.con == 2) {
+            updateQuery = 'update CMS Con2Cat=@data';
+        } else if (req.params.con == 3) {
+            updateQuery = 'update CMS Con3Sp=@data';
+        } else if (req.params.con == 4) {
+            updateQuery = 'update CMS Con4Cat=@data';
+        } else if (req.params.con == 5) {
+            updateQuery = 'update CMS Con5Offers=@data';
+        } else if (req.params.con == 6) {
+            updateQuery = 'update CMS Con6Contents=@data';
+        } else {
+            return res.json({res:false, error_msg : "Invalid Container Type Request"});
+        }
+        const request  = req.app.locals.db.request();
+        request.input('data',sql.NVarChar, req.body.data);
+        await request.execute(updateQuery);
+        res.json({res:true});
+    } catch(err) {
+        console.error(err);
+        res.json({res:false, message_err : err.msg});
     }
 });
 

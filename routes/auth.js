@@ -13,7 +13,7 @@ router.use(bodyParser.urlencoded({extended:false}));
 
 router.post('/signin', async (req,res,next)=>{
     if (req.body.email.slice(0,3) == 'APJ') {
-        passport.authenticate('prime-login', (err, user, info) => {
+        passport.authenticate('prime-login', (err, user, info) => {  
           if (err) {
             console.error(err);
             return res.status(401).json({ res: false });
@@ -90,7 +90,38 @@ router.post('/signin', async (req,res,next)=>{
 });
 
 
+router.post('/login/admin',passport.authenticate('admin'), (req,res)=>{
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.cookie('connect.sid',req.sessionID,{
+        signed:true,
+        maxAge: 30 * 24 * 60 * 60 * 1000, 
+        httpOnly: false, // Whether the cookie can be accessed by client-side JavaScript
+        secure: true, // Only send the cookie over HTTPS
+        sameSite: 'none' // Allow the cookie to be sent in cross-site requests
+      });
+    res.json({res:true});
+});
 
+
+router.post('/login/master',passport.authenticate('master'), (req,res)=>{
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.json({res:true, user : req.user});
+});
+
+
+router.post('/logout',(req,res, next)=>{
+    if (!req.isAuthenticated()) return res.status(403).json({res:false});
+    else next()
+}, (req,res)=>{
+    req.logOut((err)=>{
+        if(err){
+            console.error(err);
+            res.status(501).json({res:false, error_msg : "Internal Server error"})
+        } else {
+            res.json({res:true});
+        }
+    })
+});
 
 router.post('/',(req,res)=>{
     if(req.isAuthenticated()){
@@ -122,9 +153,6 @@ router.post('/',(req,res)=>{
         res.json({res:false});
     }
 })
-
-
-
 
 
 router.post('/register', (req,res)=>{

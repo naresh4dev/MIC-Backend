@@ -119,14 +119,19 @@ const SendWelcomeMSG =  async (bodyData)=>{
 }
 
 const SendOrderConfirmationMSG = async (bodyData)=>{
-    const smsText = `Thank you for your order, Your order Id:${bodyData.order_id} and amount Rs.${bodyData.amount} - AATRAL ORGANCIS PVT.LTD`;
-    const phoneQuery = `Select ${bodyData.user.type==='prime'?'user_mobile_number as num from PrimeUsers':'phone as num from users'} where user_id=@user_id`
-    const connection = await sqlConnect();
-    const request = new sql.Request(connection);
-    request.input('user_id', sql.VarChar, bodyData.user.id);
-    const GetNumber = request.query(phoneQuery);
-    const result = await SendSMS({Text : smsText, Number : (await GetNumber).recordset[0].num});
-    return {success : result.Success};
+    try {
+        const smsText = `Thank you for your order, Your order Id:${bodyData.order_id} and amount Rs.${bodyData.amount} - AATRAL ORGANCIS PVT.LTD`;
+        const phoneQuery = `Select ${bodyData.user.type==='prime'?'user_mobile_number as num from PrimeUsers':'phone as num from users'} where user_id=@user_id`
+        const connection = await sqlConnect();
+        const request = new sql.Request(connection);
+        request.input('user_id', sql.VarChar, bodyData.user.id);
+        const GetNumber = request.query(phoneQuery);
+        const result = await SendSMS({Text : smsText, Number : (await GetNumber).recordset[0].num});
+        return {success : result.Success};
+    } catch (err) {
+        console.log(err);
+        return {success : false}
+    }
 }
 
 const SendWalletTransacMSG = async (bodyData)=>{
