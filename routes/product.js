@@ -205,7 +205,7 @@ router.get('/get',(req,res)=>{
     });
     } else if (req.query.search != undefined) {
       const request = req.app.locals.db.request();
-      request.input('product_name',sql.NVarChar,`${req.query.search}%`);
+      request.input('product_name',sql.NVarChar,`%${req.query.search}%`);
       request.query(`select p.product_id,p.product_name,p.category,p.product_tax,p.product_image_id,img.image_data,item.item_id,item.item_stock,item.sale_price,item.regular_price,item.prime_price,item.ministore_min_qty,item.ministore_product_bonus,item.item_weight,c.category_name from products as p join items as item  on p.product_id=item.product_id join categories as c on p.category=c.category_id join Images as img on p.product_image_id=img.image_id where p.product_status=1 and p.product_name like @product_name`, (queryErr, result) => {
         if(queryErr) {
           res.json({res:false});

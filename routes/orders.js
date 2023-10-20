@@ -22,7 +22,7 @@ router.post('/createorder',isLoggedIn,async (req,res)=>{
         const result = await request.query('select cart.cart_id, item.item_id, item.quantity,itd.sale_price,itd.regular_price, itd.prime_price, itd.ministore_min_qty, itd.item_weight, itd.item_stock, itd.eligiblity_to_redeem_discount_coupon ,itd.ministore_product_bonus,p.product_id ,p.product_name, p.product_tax, p.product_image_id,p.category,i.image_data from CartTable as cart join CartItems as item on  cart.cart_id=item.cart_id join items as itd on itd.item_id=item.item_id join products as p on p.product_id=itd.product_id join Images as i on p.product_image_id=i.image_id where cart.user_id=@user_id;');  
         const addressCalc = await request.query('select * from AddressCalc');
         let calculations;
-        if(result.recordset.length ==0) 
+        if(result.recordset.length == 0) 
             throw new Error('Insufficient Items to orders')
         if(req.query.is_coupon_applied == 'y') {
             calculations = CalculateCart(req.user.type, result.recordset,true,req.query.pincode,addressCalc.recordset[0]);
@@ -34,6 +34,8 @@ router.post('/createorder',isLoggedIn,async (req,res)=>{
             await request.query(updateDiscountCouponQuery);
         } else {
             calculations = CalculateCart(req.user.type, result.recordset,false,req.query.pincode,addressCalc.recordset[0]);
+            request.input('discount',sql.Decimal(10,2),calculations.totalDiscountPrice);
+
         }
         
         request.input('total_amount',sql.Decimal(10,2),calculations.overallTotal);
@@ -86,15 +88,15 @@ router.post('/createorder',isLoggedIn,async (req,res)=>{
             },async (err,data)=>{
                 if (err) {
                     console.log(err);
-                    res.json({res:false});
+                    res.json({res:false, total : calculations.overallTotal});
                     transaction.rollback();
                 } else {
                     await transaction.commit();
-                    res.json({res:true,data:data,key : process.env.RAZORPAY_KEY_ID, total:calculations.overallTotal});
+                    res.json({res:true,data:data,key : process.env.RAZORPAY_KEY_ID, calculations:calculations});
                     
                 }
             });
-        } else if (req.query.order_type=='wallet') {
+        } else if (req.query.order_type=='wallet' && req.user.type == 'prime') {
             const checkBalanceQuery = `Select wallet_amount from PrimeUsersWallet where prime_user_id=@user_id`;
             const checkBalance = await request.query(checkBalanceQuery);
             if(checkBalance.recordset[0].wallet_balance < calculations.overallTotal)
@@ -165,12 +167,18 @@ router.post('/payment/:status',(req,res)=>{
         request.input('payment_id', sql.NVarChar, req.body.razorpayPaymentId);
         request.input('user_id', sql.NVarChar, req.user.id);
         request.input('month',sql.Char,currentMonth);
+        request.input('type',sql.Char,req.user.type=='prime'?'P':'N');
         request.input('year',sql.Char,currentYear);
-        request.input('total_amount',sql.Decimal,req.body.total_amount);
+        request.input('total_amount',sql.Decimal,req.body.totalAmount);
+        request.input('is_coupon_applied',sql.Bit, parseInt(req.body.isCouponApplied))
+        request.input('delivery_charge',sql.Decimal,req.body.deliveryCharge);
+        request.input('total_discount',sql.Decimal,req.body.totalDiscount);
         request.input('pay_mode',sql.VarChar, 'razorpay');
         request.input('pay_status',sql.VarChar,'success');
         request.input('order_status',sql.VarChar,'Order Received');
-        request.query('Insert into Orders(ordered_month, ordered_year,user_id,total_amount,payment_status,payment_mode,order_status,payment_id) values(@month,@year,@user_id,@total_amount,@pay_status,@pay_mode,@order_status,@payment_id)',(queryErr,result)=>{
+        request.input('addr_id',sql.NVarChar,req.body.addr_id);
+        
+        request.query('Insert into Orders(ordered_month, ordered_year,user_id,total_amount,payment_status,payment_mode,order_status,payment_id,user_type,is_coupon_applied,total_discount,delivery_charge,addr_id) values(@month,@year,@user_id,@total_amount,@pay_status,@pay_mode,@order_status,@payment_id,@type,@is_coupon_applied,@total_discount,@delivery_charge,@addr_id)',(queryErr)=>{
             if(!queryErr) {
 
                 res.json({res:true, order:true});
@@ -188,7 +196,7 @@ router.post('/get_one',(req,res)=>{
     const request = req.app.locals.db.request();
     request.input('order_id',sql.NVarChar, req.body.order_id);
 
-    request.query('select o.id,o.order_id, o.total_amount, o.payment_status, o.payment_mode, o.order_status,addr.addr_id,addr.addr_name, addr.addr_first_line, addr.addr_second_line, addr.addr_city, addr.addr_state, addr.addr_phone,addr.addr_pincode, itm.sale_price,itm.regular_price,itm.prime_price, itm.item_weight, oitm.quantity,p.product_name, p.category  from Orders as o join AddressBook as addr on o.addr_id=addr.addr_id join OrderItems as oitm on o.order_id=oitm.order_id join items as itm on oitm.item_id=itm.item_id join products as p on itm.product_id=p.product_id where o.order_id=@order_id'
+    request.query('select o.id,o.order_id, o.total_amount, o.payment_status, o.payment_mode, o.order_status,o.delivery_charge, o.total_discount, addr.addr_id,addr.addr_name, addr.addr_first_line, addr.addr_second_line, addr.addr_city, addr.addr_state, addr.addr_phone,addr.addr_pincode, itm.sale_price,itm.regular_price,itm.prime_price, itm.item_weight, oitm.quantity,p.product_name,p.product_image_id ,p.category  from Orders as o join AddressBook as addr on o.addr_id=addr.addr_id join OrderItems as oitm on o.order_id=oitm.order_id join items as itm on oitm.item_id=itm.item_id join products as p on itm.product_id=p.product_id where o.order_id=@order_id'
     ,(queryErr,result)=>{
         if(!queryErr) {
             res.json({res:true, order : result.recordset});

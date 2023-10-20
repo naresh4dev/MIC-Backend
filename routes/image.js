@@ -17,7 +17,7 @@ router.get('/:image_id', async (req,res)=>{
         res.end(buffer);
     } catch(err) {
         console.log(err.message);
-        res.status(500);
+        res.sendStatus(500);
     }
 }); 
 

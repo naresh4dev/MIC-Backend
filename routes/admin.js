@@ -876,7 +876,7 @@ router.post('/reports/:type', async (req, res) => {
             else if (req.body.type == 'products')
                 query = `select distinct p.id,p.product_id,p.product_status,p.product_name,p.category,p.subcategory,Cast(p.created_at as DATE) as created_at,(select count(item_id) from items where product_id=p.product_id group by product_id) as item_count from products as p`
             else if (req.body.type == 'pitems')
-                query = `select itm.item_id, itm.sale_price, itm  from items as itm join products as p on itm.product_id=p.product_id`;
+                query = `select *  from items as itm join products as p on itm.product_id=p.product_id`;
             else
                 throw new Error('Invalid Type Request');
             const result = await req.app.locals.db.query(query);
@@ -1509,18 +1509,43 @@ router.get('/pointstowallet', async (req, res) => {
     }
 });
 
+
+function ConvertStringToArrayJSON(items) {
+    items = items.split(";") || []
+    let result = []
+    for (const item of items) {
+        result.push(JSON.parse(String(item)));
+    }
+    return result;
+}
+
 router.get('/cms', async (req,res)=>{
     try {
         const result = await req.app.locals.db.query('select * from CMS');
-        let data = {
-            con1 : result.recordset[0].HomeCon.split(";"),
-            con2 : result.recordset[0].Con2Cat.split(";"),
-            con3 : result.recordset[0].Con3Sp.split(";"),
-            con4 : result.recordset[0].Con4Offers.split(";"),
-            con6 : [],
-        }
+        // Con 1
+        const con1 = result.recordset[0]?.HomeCon?.split(";") || []
+        // Con2
+       
+        const con2 = result.recordset[0]?.Con2Cat !=null? JSON.parse(result.recordset[0]?.Con2Cat): {};
         
-        res.json({res:true, data : result.recordset});
+        // Con 3 
+        const con3 = JSON.parse(result.recordset[0]?.Con3Sp);
+        // Con 4
+        const con4 = result.recordset[0]?.Con4Cat !=null?  ConvertStringToArrayJSON(result.recordset[0]?.Con4Cat): [];
+        // Con 5 
+        const con5 = ConvertStringToArrayJSON(result.recordset[0]?.Con5Offers);
+        // Con 6
+        const con6 = ConvertStringToArrayJSON(result.recordset[0]?.Con6Contents);
+        let data = {
+            con1 : con1,
+            con2 : con2,
+            con3 : con3,
+            con4 : con4,
+            con5 : con5,
+            con6 : con6,
+        }
+       
+        res.json({res:true, data : data});
     } catch(err){
         res.json({res:false, message_err : err.msg});
         console.error(err);
@@ -1531,23 +1556,23 @@ router.post('/cms/:con', async (req,res)=>{
     try {
         let updateQuery;
         if (req.params.con == 1) {
-            updateQuery = 'update CMS HomeCon=@data';
+            updateQuery = 'update CMS set HomeCon=@data';
         } else if (req.params.con == 2) {
-            updateQuery = 'update CMS Con2Cat=@data';
+            updateQuery = 'update CMS set Con2Cat=@data';
         } else if (req.params.con == 3) {
-            updateQuery = 'update CMS Con3Sp=@data';
+            updateQuery = 'update CMS set Con3Sp=@data';
         } else if (req.params.con == 4) {
-            updateQuery = 'update CMS Con4Cat=@data';
+            updateQuery = 'update CMS set Con4Cat=@data';
         } else if (req.params.con == 5) {
-            updateQuery = 'update CMS Con5Offers=@data';
+            updateQuery = 'update CMS set Con5Offers=@data';
         } else if (req.params.con == 6) {
-            updateQuery = 'update CMS Con6Contents=@data';
+            updateQuery = 'update CMS set Con6Contents=@data';
         } else {
             return res.json({res:false, error_msg : "Invalid Container Type Request"});
         }
         const request  = req.app.locals.db.request();
         request.input('data',sql.NVarChar, req.body.data);
-        await request.execute(updateQuery);
+        await request.query(updateQuery);
         res.json({res:true});
     } catch(err) {
         console.error(err);

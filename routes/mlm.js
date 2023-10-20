@@ -255,9 +255,6 @@ router.get('/dairy',isLoggedIn, async (req,res)=>{
 
 router.post('/dairy/:type',isLoggedIn, async (req,res)=>{
     const type = req.params.type;
-    // console.log(req.body);
-    
-    
     if (type == 'new') {
         try {
             if (!IsNumber(req.body?.member_phone)) {
@@ -282,7 +279,7 @@ router.post('/dairy/:type',isLoggedIn, async (req,res)=>{
             const request = req.app.locals.db.request();
             request.input('id', sql.NVarChar, req.body.member_id);
             request.input('status', sql.NVarChar, req.body.status);
-            const updateQuery = 'Update MLMDairy set status=@status where member_id=@id';
+            const updateQuery = 'Update MLMDairy set member_status=@status where member_id=@id';
             const result = await request.query(updateQuery);
             if (result.rowsAffected[0] ==0) 
                 throw new Error('Member Not Found');
@@ -295,6 +292,20 @@ router.post('/dairy/:type',isLoggedIn, async (req,res)=>{
         res.json({res:false, error_msg : 'Invalid Parameters. Check your request URL'});
     }
 });
+
+router.get('/dairyone', isLoggedIn, async(req,res)=>{
+    try {
+        const request = req.app.locals.db.request();
+        request.input('id',sql.NVarChar, req.query?.id);
+        const getDairyQuery = 'Select * from MLMDairy where member_sponsor_id=@id';
+        const result = await request.query(getDairyQuery);
+        res.json({res:true, members : result.recordset});
+    
+    } catch (err) {
+        console.log(err);
+        res.json({res:false, error_msg : err.message});
+    }
+})
 
 
 

@@ -29,7 +29,7 @@ router.post('/signin', async (req,res,next)=>{
             } else {
                 next();
             } 
-             // Call next() to proceed to the next middleware/route handler
+             
           });
         })(req, res, next);
       } else {
@@ -60,7 +60,7 @@ router.post('/signin', async (req,res,next)=>{
         signed:true,
         maxAge: 30 * 24 * 60 * 60 * 1000, 
         httpOnly: false, // Whether the cookie can be accessed by client-side JavaScript
-        secure: true, // Only send the cookie over HTTPS
+        secure: false, // Only send the cookie over HTTPS
         sameSite: 'none' // Allow the cookie to be sent in cross-site requests
       });
     request.input('user_id',sql.NVarChar,req.user.id);
@@ -388,6 +388,24 @@ router.post('/resetpassword',async (req, res)=>{
         res.json({res:false, error_msg : err.message});
     }
     
+});
+
+router.get('/plans',(req,res)=>{
+    const request = req.app.locals.db.request();
+    request.query("select * from PrimePackagePlan where plan_status=1", (queryErr, result) => {
+        if (!queryErr)
+            res.json({
+                res: true,
+                plans: result.recordset
+            });
+        else {
+            console.log(queryErr);
+            res.json({
+                res: false,
+                error_msg: "Internal Server Error"
+            });
+        }
+    });
 });
 
 
