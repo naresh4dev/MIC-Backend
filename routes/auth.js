@@ -60,7 +60,7 @@ router.post('/signin', async (req,res,next)=>{
         signed:true,
         maxAge: 30 * 24 * 60 * 60 * 1000, 
         httpOnly: false, // Whether the cookie can be accessed by client-side JavaScript
-        secure: false, // Only send the cookie over HTTPS
+        secure: true, // Only send the cookie over HTTPS
         sameSite: 'none' // Allow the cookie to be sent in cross-site requests
       });
     request.input('user_id',sql.NVarChar,req.user.id);
